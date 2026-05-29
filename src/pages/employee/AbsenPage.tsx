@@ -17,7 +17,7 @@ import {
   Send,
   AlertCircle,
 } from 'lucide-react'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 type Step = 'gps' | 'camera' | 'review' | 'done'
 

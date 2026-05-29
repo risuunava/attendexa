@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth, type UserRole } from '../contexts/AuthContext'
 import { useForm } from 'react-hook-form'
 import { Zap, Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, AlertCircle } from 'lucide-react'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 interface LoginFormData {
   email: string
