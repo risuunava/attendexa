@@ -7,13 +7,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       colors: {
         primary: {
           DEFAULT: '#1A56DB',
-          light: '#EBF5FF',
           50: '#EBF5FF',
           100: '#D6EBFF',
           200: '#ADCFFF',
@@ -26,6 +26,11 @@ export default {
           900: '#05142F',
         },
         accent: '#0EA5E9',
+        // OurCreativity Brutalist accents
+        brutalistYellow: '#FACC15',
+        brutalistPink: '#F472B6',
+        brutalistCyan: '#22D3EE',
+        brutalistWhite: '#F8FAFC',
         success: {
           DEFAULT: '#059669',
           light: '#D1FAE5',
@@ -57,53 +62,27 @@ export default {
       },
       boxShadow: {
         'glass': '0 8px 32px rgba(31, 38, 135, 0.1)',
-        'glass-sm': '0 4px 16px rgba(31, 38, 135, 0.08)',
-        'glass-lg': '0 12px 48px rgba(31, 38, 135, 0.15)',
-        'primary': '0 4px 14px rgba(26, 86, 219, 0.3)',
-        'primary-lg': '0 8px 24px rgba(26, 86, 219, 0.4)',
-      },
-      backdropBlur: {
-        'glass': '12px',
-        'nav': '16px',
+        'glass-sm': '0 2px 12px rgba(31, 38, 135, 0.06)',
+        // Brutalist shadows (Light mode adaptation: slightly softer alpha or pure black if wanted. The reference uses pure black #000, let's keep it bold)
+        'brutalist-sm': '2px 2px 0px 0px #000',
+        'brutalist': '4px 4px 0px 0px #000',
+        'brutalist-lg': '8px 8px 0px 0px #000',
+        'brutalist-white': '4px 4px 0px 0px #fff',
+        'brutalist-rose': '4px 4px 0px 0px #e11d48',
+        'brutalist-purple': '4px 4px 0px 0px #a855f7',
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float': 'float 6s ease-in-out infinite',
         'shimmer': 'shimmer 2s linear infinite',
-        'slide-up': 'slideUp 0.5s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
         'fade-in': 'fadeIn 0.3s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        slideDown: {
-          '0%': { transform: 'translateY(-10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.95)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        glow: {
-          '0%': { boxShadow: '0 0 5px rgba(26, 86, 219, 0.3)' },
-          '100%': { boxShadow: '0 0 20px rgba(26, 86, 219, 0.6)' },
         },
       },
     },

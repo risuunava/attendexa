@@ -102,7 +102,6 @@ export default function AbsenPage() {
 
   return (
     <PageContainer>
-      <Toaster position="top-center" />
       <CameraModal
         isOpen={cameraOpen}
         onClose={() => setCameraOpen(false)}

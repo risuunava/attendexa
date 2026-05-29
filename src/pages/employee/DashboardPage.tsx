@@ -5,7 +5,6 @@ import { useAttendance } from '../../hooks/useAttendance'
 import { getXPLevel, getStatusLabel, getStatusColor } from '../../lib/xpCalculator'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
-import { motion } from 'framer-motion'
 import PageContainer from '../../components/layout/PageContainer'
 import {
   Zap,
@@ -17,6 +16,7 @@ import {
   ArrowRight,
   CheckCircle2,
   MapPin,
+  Target
 } from 'lucide-react'
 import { supabase } from '../../libs/supabase'
 
@@ -24,19 +24,6 @@ interface MonthlyStats {
   total_hadir: number
   total_terlambat: number
   total_absen: number
-}
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 }
 
 export default function DashboardPage() {
@@ -100,222 +87,185 @@ export default function DashboardPage() {
 
   return (
     <PageContainer>
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="space-y-6"
-      >
-        {/* Greeting */}
-        <motion.div variants={item}>
-          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">
-            {greeting}, <span className="text-gradient">{profile.full_name || 'User'}!</span>
+      <div className="space-y-6">
+        {/* Header - Brutalist Typography */}
+        <div className="mb-8">
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-neutral-800 tracking-tight">
+            {greeting}, <span className="text-primary italic">{profile.full_name?.split(' ')[0] || 'User'}</span>.
           </h1>
-          <p className="text-sm text-neutral-500 mt-1 capitalize">{todayDate}</p>
-        </motion.div>
-
-        {/* CTA Absen Card */}
-        <motion.div variants={item}>
-          <div
-            className={`glass-card p-6 relative overflow-hidden ${
-              hasCheckedIn ? 'border-success/20' : 'border-primary/20'
-            }`}
-          >
-            {/* Decorative gradient */}
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-2xl" />
-
-            {hasCheckedIn ? (
-              /* Already checked in */
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-2xl bg-success-light flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-success" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-neutral-800">
-                      Sudah Absen Hari Ini
-                    </h2>
-                    <p className="text-sm text-neutral-500">
-                      {format(new Date(todayRecord.check_in_at), 'HH:mm')} WIB
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <span
-                    className={`badge ${getStatusColor(
-                      todayRecord.status as any
-                    )}`}
-                  >
-                    {getStatusLabel(todayRecord.status as any)}
-                  </span>
-                  <span className="badge bg-primary-50 text-primary">
-                    <Zap size={14} />+{todayRecord.xp_earned} XP
-                  </span>
-                  {todayRecord.distance_meters !== null && (
-                    <span className="badge bg-neutral-100 text-neutral-600">
-                      <MapPin size={14} />{todayRecord.distance_meters}m
-                    </span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* Not checked in yet */
-              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold text-neutral-800 mb-1">
-                    Belum Absen Hari Ini
-                  </h2>
-                  <p className="text-sm text-neutral-500">
-                    Segera absen untuk mendapatkan XP!
-                  </p>
-                </div>
-                <Link to="/absen">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="btn-primary text-base px-8 py-4 animate-glow"
-                  >
-                    <Clock className="w-5 h-5" />
-                    Absen Sekarang
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* XP Widget + Streak */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* XP Progress */}
-          <motion.div variants={item} className="glass-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{level.emoji}</span>
-                <div>
-                  <h3 className="text-sm font-semibold text-neutral-800">{level.name}</h3>
-                  <p className="text-xs text-neutral-400">Level saat ini</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-primary font-tabular">
-                  {profile.total_xp}
-                </p>
-                <p className="text-xs text-neutral-400">Total XP</p>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="xp-bar">
-              <motion.div
-                className="xp-bar-fill"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(xpProgress, 100)}%` }}
-                transition={{ duration: 1.5, ease: 'easeOut', delay: 0.3 }}
-              />
-            </div>
-            <div className="flex justify-between mt-1.5">
-              <span className="text-xs text-neutral-400 font-tabular">
-                {level.minXP} XP
-              </span>
-              <span className="text-xs text-neutral-400">
-                {nextLevel.emoji} {nextLevel.name}
-              </span>
-              <span className="text-xs text-neutral-400 font-tabular">
-                {level.maxXP === 99999 ? '∞' : `${level.maxXP + 1} XP`}
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Streak Counter */}
-          <motion.div variants={item} className="glass-card p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
-                <Flame className="w-6 h-6 text-orange-500" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-800">Streak</h3>
-                <p className="text-xs text-neutral-400">Hari berturut-turut tepat waktu</p>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <motion.span
-                className="text-4xl font-bold text-orange-500 font-tabular"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.5 }}
-              >
-                {profile.streak_days}
-              </motion.span>
-              <span className="text-sm text-neutral-400">hari 🔥</span>
-            </div>
-            {profile.streak_days >= 5 && (
-              <p className="text-xs text-success mt-2 font-medium">
-                🎉 {profile.streak_days >= 20
-                  ? 'Streak 20 hari! +50 XP Bonus'
-                  : profile.streak_days >= 10
-                  ? 'Streak 10 hari! +25 XP Bonus'
-                  : 'Streak 5 hari! +10 XP Bonus'}
-              </p>
-            )}
-          </motion.div>
+          <p className="text-sm md:text-base text-neutral-500 mt-2 uppercase tracking-widest font-bold">
+            {todayDate}
+          </p>
         </div>
 
-        {/* Monthly Stats */}
-        <motion.div variants={item}>
-          <h2 className="text-lg font-semibold text-neutral-800 mb-3">
-            Statistik Bulan Ini
-          </h2>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="glass-card-sm p-4 text-center">
-              <div className="w-10 h-10 rounded-xl bg-success-light flex items-center justify-center mx-auto mb-2">
-                <CalendarCheck className="w-5 h-5 text-success" />
-              </div>
-              <p className="text-2xl font-bold text-success font-tabular">
-                {stats.total_hadir}
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">Tepat Waktu</p>
-            </div>
+        {/* BENTO GRID LAYOUT */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Bento Item 1: Main Action (Spans 2 columns on tablet/desktop) */}
+          <div className="md:col-span-2">
+            <div className={`glass-card p-6 h-full flex flex-col justify-center relative overflow-hidden group ${
+              hasCheckedIn ? 'bg-success-light/20 border-success/50' : 'bg-brutalistWhite'
+            }`}>
+              {hasCheckedIn ? (
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-none border-2 border-neutral-800 bg-success-light shadow-[2px_2px_0px_0px_#1F2937] flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-success" />
+                    </div>
+                    <div>
+                      <h2 className="font-serif text-2xl font-bold text-neutral-800">
+                        Sudah Absen Hari Ini
+                      </h2>
+                      <p className="font-mono text-sm text-neutral-600 mt-1">
+                        Pukul {format(new Date(todayRecord.check_in_at), 'HH:mm:ss')} WIB
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="glass-card-sm p-4 text-center">
-              <div className="w-10 h-10 rounded-xl bg-warning-light flex items-center justify-center mx-auto mb-2">
-                <AlertTriangle className="w-5 h-5 text-warning" />
-              </div>
-              <p className="text-2xl font-bold text-warning font-tabular">
-                {stats.total_terlambat}
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">Terlambat</p>
-            </div>
-
-            <div className="glass-card-sm p-4 text-center">
-              <div className="w-10 h-10 rounded-xl bg-danger-light flex items-center justify-center mx-auto mb-2">
-                <CalendarX className="w-5 h-5 text-danger" />
-              </div>
-              <p className="text-2xl font-bold text-danger font-tabular">
-                {stats.total_absen}
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">Absen</p>
+                  <div className="flex flex-wrap gap-3 mt-6">
+                    <span className={`badge ${getStatusColor(todayRecord.status as any)}`}>
+                      {getStatusLabel(todayRecord.status as any)}
+                    </span>
+                    <span className="badge bg-brutalistYellow text-neutral-900 border-neutral-800 shadow-[2px_2px_0px_0px_#1F2937]">
+                      <Zap size={14} className="mr-1 inline" />+{todayRecord.xp_earned} XP
+                    </span>
+                    {todayRecord.distance_meters !== null && (
+                      <span className="badge bg-white text-neutral-800 border-neutral-800">
+                        <MapPin size={14} className="mr-1 inline" />{todayRecord.distance_meters}m
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div>
+                    <h2 className="font-serif text-2xl md:text-3xl font-bold text-neutral-800 mb-2">
+                      Belum Absen Hari Ini
+                    </h2>
+                    <p className="text-neutral-600 font-medium">
+                      Jangan sampai terlambat, segera amankan XP kamu hari ini.
+                    </p>
+                  </div>
+                  <Link to="/absen" className="btn-primary whitespace-nowrap text-base px-8 py-4">
+                    <Clock className="w-5 h-5" />
+                    Absen Sekarang
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
 
-        {/* Monthly XP */}
-        <motion.div variants={item} className="glass-card-sm p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-light flex items-center justify-center">
-              <Zap className="w-5 h-5 text-purple" />
+          {/* Bento Item 2: Streak Card */}
+          <div className="glass-card p-6 bg-brutalistYellow/10 flex flex-col justify-center items-center text-center">
+            <div className="w-14 h-14 rounded-none border-2 border-neutral-800 bg-brutalistYellow shadow-[4px_4px_0px_0px_#1F2937] flex items-center justify-center mb-4 transform -rotate-3 transition-transform hover:rotate-3">
+              <Flame className="w-7 h-7 text-neutral-900" />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-neutral-800">XP Bulan Ini</p>
-              <p className="text-xs text-neutral-400">Reset setiap tanggal 1</p>
+            <h3 className="font-serif text-xl font-bold text-neutral-800">Streak Harian</h3>
+            <div className="flex items-baseline justify-center gap-1.5 mt-2">
+              <span className="text-5xl font-bold text-neutral-900 font-tabular tracking-tighter">
+                {profile.streak_days}
+              </span>
+              <span className="font-mono text-sm font-bold text-neutral-600 uppercase">Hari</span>
             </div>
           </div>
-          <p className="text-2xl font-bold text-purple font-tabular">
-            {profile.monthly_xp}
-          </p>
-        </motion.div>
-      </motion.div>
+
+          {/* Bento Item 3: Level & XP (Spans 2 columns) */}
+          <div className="md:col-span-2 glass-card p-6 flex flex-col justify-center">
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <p className="font-mono text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">
+                  Level Saat Ini
+                </p>
+                <h3 className="font-serif text-3xl font-bold text-neutral-800 flex items-center gap-3">
+                  {level.name}
+                </h3>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-3xl font-bold text-primary font-tabular">
+                  {profile.total_xp}
+                </p>
+                <p className="font-mono text-xs font-bold text-neutral-500 uppercase tracking-widest mt-1">Total XP</p>
+              </div>
+            </div>
+
+            <div className="xp-bar mt-2 h-4">
+              <div
+                className="xp-bar-fill"
+                style={{ width: `${Math.min(xpProgress, 100)}%` }}
+              />
+            </div>
+            
+            <div className="flex justify-between mt-3">
+              <span className="font-mono text-xs font-bold text-neutral-500">
+                {level.minXP}
+              </span>
+              <span className="font-serif text-sm font-bold text-neutral-800">
+                Next: {nextLevel.name}
+              </span>
+              <span className="font-mono text-xs font-bold text-neutral-500">
+                {level.maxXP === 99999 ? 'MAX' : level.maxXP + 1}
+              </span>
+            </div>
+          </div>
+
+          {/* Bento Item 4: Monthly Target XP */}
+          <div className="glass-card p-6 bg-brutalistPink/10 flex flex-col justify-center">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 border-2 border-neutral-800 bg-brutalistPink flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-neutral-800 uppercase tracking-wider text-sm">XP Bulanan</h3>
+                <p className="text-xs text-neutral-500 font-medium">Bulan Ini</p>
+              </div>
+            </div>
+            <p className="text-4xl font-bold text-neutral-900 font-tabular font-mono tracking-tighter">
+              {profile.monthly_xp}
+            </p>
+          </div>
+
+          {/* Bento Item 5: Monthly Stats summary (Spans all 3 cols on desktop) */}
+          <div className="md:col-span-3 glass-card p-6 bg-white">
+            <h2 className="font-serif text-xl font-bold text-neutral-800 mb-6">
+              Statistik Kehadiran Bulan Ini
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div className="border-2 border-neutral-800 p-4 flex items-center justify-between hover:bg-success-light/20 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-success text-white border-2 border-neutral-800 flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                    <CalendarCheck className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-neutral-700">Tepat Waktu</p>
+                </div>
+                <p className="font-mono text-3xl font-bold text-neutral-900">{stats.total_hadir}</p>
+              </div>
+
+              <div className="border-2 border-neutral-800 p-4 flex items-center justify-between hover:bg-warning-light/20 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-warning text-white border-2 border-neutral-800 flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-neutral-700">Terlambat</p>
+                </div>
+                <p className="font-mono text-3xl font-bold text-neutral-900">{stats.total_terlambat}</p>
+              </div>
+
+              <div className="border-2 border-neutral-800 p-4 flex items-center justify-between hover:bg-danger-light/20 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-danger text-white border-2 border-neutral-800 flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                    <CalendarX className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-neutral-700">Absen</p>
+                </div>
+                <p className="font-mono text-3xl font-bold text-neutral-900">{stats.total_absen}</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
     </PageContainer>
   )
 }

@@ -49,6 +49,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState<string | null>(null)
+  
+  // Timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.error("AuthContext loading timeout reached (15s). Force stopping loader.");
+        setLoading(false);
+        setAuthError("Koneksi server lambat. Silakan refresh halaman atau login ulang.");
+      }
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   // Fetch user profile from the `users` table
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
@@ -101,24 +113,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false)
         }
       }
+    }).catch((err) => {
+      console.error("Critical error in getSession:", err)
+      if (isMounted) {
+        setAuthError(`Gagal memuat sesi: ${err.message || 'Unknown error'}`)
+        setLoading(false)
+      }
     })
 
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    } = supabase.auth.onAuthStateChange((event, s) => {
+      console.log("Auth state changed:", event, s?.user?.id)
       if (!isMounted) return
+
+      // Prevent premature redirects by setting loading state
+      setLoading(true)
 
       setSession(s)
       setUser(s?.user ?? null)
 
       if (s?.user) {
-        const p = await fetchProfile(s.user.id)
-        if (isMounted) setProfile(p)
+        // Use fire-and-forget to avoid deadlocking Supabase GoTrue client
+        fetchProfile(s.user.id).then((p) => {
+          if (isMounted) {
+            setProfile(p)
+            setLoading(false)
+          }
+        })
       } else {
-        setProfile(null)
+        if (isMounted) {
+          setProfile(null)
+          setLoading(false)
+        }
       }
-      if (isMounted) setLoading(false)
     })
 
     return () => {
@@ -129,11 +158,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     setAuthError(null)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error: error as Error | null }
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      return { error: error as Error | null }
+    } catch (err: any) {
+      console.error('SignIn exception:', err)
+      return { error: err as Error }
+    }
   }, [])
 
   const signUp = useCallback(
@@ -160,11 +194,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    // Clear local state immediately so UI reacts instantly
     setUser(null)
     setSession(null)
     setProfile(null)
     setAuthError(null)
+
+    // Call Supabase signout in the background
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Error during Supabase signout:', error)
+    }
   }, [])
 
   return (
