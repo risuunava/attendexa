@@ -5,7 +5,6 @@ import {
   History,
   Trophy,
   FileText,
-  User,
   Zap,
   MapPin,
   Users,
