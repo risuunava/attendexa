@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: linear-gradient(135deg, #EBF5FF 0%, #F0F9FF 50%, #F9FAFB 100%);
+    color: #1F2937;
+    min-height: 100vh;
+  }
+
+  /* XP numbers should use tabular figures for alignment */
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    border-radius: 1rem;
+  }
+
+  .glass-card-sm {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.08);
+    border-radius: 0.75rem;
+  }
+
+  /* Glassmorphism Navbar */
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Primary Gradient Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+      px-6 py-3 rounded-xl
+      bg-primary text-white font-semibold
+      shadow-primary
+      transition-all duration-200 ease-out
+      hover:shadow-primary-lg hover:scale-[1.02] hover:brightness-110
+      active:scale-[0.98]
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+      px-6 py-3 rounded-xl
+      bg-white text-primary font-semibold
+      border border-primary/20
+      shadow-glass-sm
+      transition-all duration-200 ease-out
+      hover:bg-primary-50 hover:shadow-glass hover:scale-[1.02]
+      active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+      px-6 py-3 rounded-xl
+      bg-danger text-white font-semibold
+      shadow-sm
+      transition-all duration-200 ease-out
+      hover:brightness-110 hover:scale-[1.02]
+      active:scale-[0.98];
+  }
+
+  /* Status Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .badge-success {
+    @apply badge bg-success-light text-success;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-light text-warning;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger-light text-danger;
+  }
+
+  .badge-info {
+    @apply badge bg-primary-50 text-primary;
+  }
+
+  .badge-purple {
+    @apply badge bg-purple-light text-purple;
+  }
+
+  /* Input Field */
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl
+      bg-white/80 border border-neutral-200
+      text-neutral-800 placeholder-neutral-400
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+      hover:border-neutral-300;
+  }
+
+  /* XP Progress Bar */
+  .xp-bar {
+    @apply relative h-3 bg-neutral-100 rounded-full overflow-hidden;
+  }
+
+  .xp-bar-fill {
+    @apply absolute inset-y-0 left-0 rounded-full
+      bg-gradient-to-r from-primary via-accent to-purple
+      transition-all duration-1000 ease-out;
+  }
+
+  /* Page container */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-purple;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5DB transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #D1D5DB;
+    border-radius: 3px;
+  }
+}
