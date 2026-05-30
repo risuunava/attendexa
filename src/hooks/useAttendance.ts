@@ -12,6 +12,7 @@ interface LocationPoint {
   longitude: number
   radius_meters: number
   work_start_time: string
+  work_end_time: string
 }
 
 interface AttendanceState {
@@ -271,11 +272,82 @@ export function useAttendance() {
     [user, profile, uploadPhoto, refreshProfile]
   )
 
+  /**
+   * Submit checkout (absen pulang) — no XP awarded
+   */
+  const submitCheckout = useCallback(
+    async (locationPoint: LocationPoint) => {
+      if (!user || !state.todayRecord) {
+        setState((prev) => ({ ...prev, error: 'Belum ada record absen hari ini.' }))
+        return null
+      }
+
+      if (state.todayRecord.check_out_at) {
+        setState((prev) => ({ ...prev, error: 'Anda sudah absen pulang hari ini.' }))
+        return null
+      }
+
+      // Check if current time >= work_end_time
+      const now = new Date()
+      const [endHour, endMinute] = (locationPoint.work_end_time || '17:00').split(':').map(Number)
+      const workEnd = new Date(now)
+      workEnd.setHours(endHour, endMinute, 0, 0)
+
+      if (now < workEnd) {
+        const timeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`
+        setState((prev) => ({
+          ...prev,
+          error: `Belum waktunya pulang. Jam pulang: ${timeStr}`,
+        }))
+        return null
+      }
+
+      setState((prev) => ({ ...prev, submitting: true, error: null }))
+
+      try {
+        const { data, error: updateError } = await supabase
+          .from('attendance_records')
+          .update({ check_out_at: now.toISOString() })
+          .eq('id', state.todayRecord.id)
+          .select()
+          .single()
+
+        if (updateError) {
+          setState((prev) => ({
+            ...prev,
+            submitting: false,
+            error: `Gagal absen pulang: ${updateError.message}`,
+          }))
+          return null
+        }
+
+        setState((prev) => ({
+          ...prev,
+          submitting: false,
+          todayRecord: data as TodayRecord,
+          error: null,
+        }))
+
+        return data
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          submitting: false,
+          error: 'Terjadi kesalahan saat absen pulang.',
+        }))
+        console.error('Submit checkout error:', err)
+        return null
+      }
+    },
+    [user, state.todayRecord]
+  )
+
   return {
     ...state,
     fetchTodayRecord,
     fetchLocationPoints,
     findNearestPoint,
     submitAttendance,
+    submitCheckout,
   }
 }

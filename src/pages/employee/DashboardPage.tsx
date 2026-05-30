@@ -16,9 +16,12 @@ import {
   ArrowRight,
   CheckCircle2,
   MapPin,
-  Target
+  Target,
+  LogOut,
+  Loader2,
 } from 'lucide-react'
 import { supabase } from '../../libs/supabase'
+import toast from 'react-hot-toast'
 
 interface MonthlyStats {
   total_hadir: number
@@ -28,15 +31,19 @@ interface MonthlyStats {
 
 export default function DashboardPage() {
   const { profile } = useAuth()
-  const { todayRecord, fetchTodayRecord } = useAttendance()
+  const { todayRecord, fetchTodayRecord, fetchLocationPoints, locationPoints, submitCheckout, submitting, error: attendanceError } = useAttendance()
   const [stats, setStats] = useState<MonthlyStats>({
     total_hadir: 0,
     total_terlambat: 0,
     total_absen: 0,
   })
+  const [checkoutDone, setCheckoutDone] = useState(false)
+  const [canCheckout, setCanCheckout] = useState(false)
+  const [checkoutTimeStr, setCheckoutTimeStr] = useState('17:00')
 
   useEffect(() => {
     fetchTodayRecord()
+    fetchLocationPoints()
     fetchMonthlyStats()
   }, [fetchTodayRecord])
 
@@ -65,6 +72,65 @@ export default function DashboardPage() {
     }
   }
 
+  // Check if checkout is possible
+  useEffect(() => {
+    if (todayRecord && !todayRecord.check_out_at && locationPoints.length > 0) {
+      // Find the location point used for check-in
+      const locPoint = locationPoints.find(
+        (lp: any) => lp.id === (todayRecord as any).location_point_id
+      ) || locationPoints[0]
+
+      if (locPoint) {
+        const endTime = (locPoint as any).work_end_time || '17:00'
+        setCheckoutTimeStr(endTime)
+        const [endHour, endMinute] = endTime.split(':').map(Number)
+        const now = new Date()
+        const workEnd = new Date(now)
+        workEnd.setHours(endHour, endMinute, 0, 0)
+        setCanCheckout(now >= workEnd)
+      }
+    }
+    if (todayRecord?.check_out_at) {
+      setCheckoutDone(true)
+    }
+  }, [todayRecord, locationPoints])
+
+  // Refresh canCheckout every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (todayRecord && !todayRecord.check_out_at && locationPoints.length > 0) {
+        const locPoint = locationPoints.find(
+          (lp: any) => lp.id === (todayRecord as any).location_point_id
+        ) || locationPoints[0]
+
+        if (locPoint) {
+          const endTime = (locPoint as any).work_end_time || '17:00'
+          const [endHour, endMinute] = endTime.split(':').map(Number)
+          const now = new Date()
+          const workEnd = new Date(now)
+          workEnd.setHours(endHour, endMinute, 0, 0)
+          setCanCheckout(now >= workEnd)
+        }
+      }
+    }, 30000) // check every 30 seconds
+    return () => clearInterval(interval)
+  }, [todayRecord, locationPoints])
+
+  const handleCheckout = async () => {
+    if (!todayRecord || !locationPoints.length) return
+    const locPoint = locationPoints.find(
+      (lp: any) => lp.id === (todayRecord as any).location_point_id
+    ) || locationPoints[0]
+
+    if (!locPoint) return
+
+    const result = await submitCheckout(locPoint as any)
+    if (result) {
+      setCheckoutDone(true)
+      toast.success('Absen pulang berhasil! Selamat beristirahat 👋', { duration: 4000 })
+    }
+  }
+
   if (!profile) return null
 
   const level = getXPLevel(profile.total_xp)
@@ -83,6 +149,7 @@ export default function DashboardPage() {
       : 'Selamat Malam'
 
   const hasCheckedIn = !!todayRecord
+  const hasCheckedOut = !!todayRecord?.check_out_at || checkoutDone
   const todayDate = format(now, "EEEE, d MMMM yyyy", { locale: localeId })
 
   return (
@@ -107,7 +174,7 @@ export default function DashboardPage() {
               hasCheckedIn ? 'bg-success-light/20 border-success/50' : 'bg-brutalistWhite'
             }`}>
               {hasCheckedIn ? (
-                <div className="relative z-10">
+                <div className="relative z-10 w-full">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 rounded-none border-2 border-neutral-800 bg-success-light shadow-[2px_2px_0px_0px_#1F2937] flex items-center justify-center">
                       <CheckCircle2 className="w-6 h-6 text-success" />
@@ -133,6 +200,54 @@ export default function DashboardPage() {
                       <span className="badge bg-white text-neutral-800 border-neutral-800">
                         <MapPin size={14} className="mr-1 inline" />{todayRecord.distance_meters}m
                       </span>
+                    )}
+                  </div>
+
+                  {/* Checkout section */}
+                  <div className="mt-6 pt-4 border-t-2 border-neutral-200">
+                    {hasCheckedOut ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-none border-2 border-neutral-800 bg-brutalistCyan shadow-[2px_2px_0px_0px_#1F2937] flex items-center justify-center">
+                          <LogOut className="w-5 h-5 text-neutral-900" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-neutral-800 text-sm">Sudah Absen Pulang</p>
+                          {todayRecord.check_out_at && (
+                            <p className="font-mono text-xs text-neutral-500">
+                              Pukul {format(new Date(todayRecord.check_out_at), 'HH:mm:ss')} WIB
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                          <p className="font-bold text-neutral-800 text-sm">Absen Pulang</p>
+                          <p className="font-mono text-xs text-neutral-500">
+                            Jam pulang: {checkoutTimeStr}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleCheckout}
+                          disabled={!canCheckout || submitting}
+                          className={`flex items-center gap-2 px-4 py-2 font-bold text-sm border-2 border-neutral-800 transition-all ${
+                            canCheckout
+                              ? 'bg-brutalistCyan text-neutral-900 hover:shadow-[4px_4px_0px_0px_#1F2937] active:shadow-none'
+                              : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {submitting ? (
+                            <><Loader2 size={16} className="animate-spin" /> Memproses...</>
+                          ) : canCheckout ? (
+                            <><LogOut size={16} /> Absen Pulang</>
+                          ) : (
+                            <><Clock size={16} /> Belum Waktunya</>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    {attendanceError && (
+                      <p className="text-danger text-xs font-bold mt-2">{attendanceError}</p>
                     )}
                   </div>
                 </div>
