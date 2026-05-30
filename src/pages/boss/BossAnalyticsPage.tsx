@@ -231,7 +231,7 @@ export default function BossAnalyticsPage() {
                       outerRadius={130}
                       paddingAngle={0}
                       dataKey="value"
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      label={({ percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
                       labelLine={false}
                       stroke="#1F2937"
                       strokeWidth={2}
