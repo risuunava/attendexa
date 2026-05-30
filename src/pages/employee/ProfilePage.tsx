@@ -2,9 +2,12 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getXPLevel } from '../../lib/xpCalculator'
 import PageContainer from '../../components/layout/PageContainer'
 import { motion } from 'framer-motion'
-import { User, Building, Flame, Zap, Award, Star, CalendarDays } from 'lucide-react'
+import { User, Building, Flame, Zap, Award, Star, CalendarDays, Camera, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
+import { useRef, useState } from 'react'
+import toast from 'react-hot-toast'
+import ImageCropModal from '../../components/ui/ImageCropModal'
 
 const container = {
   hidden: { opacity: 0 },
@@ -17,9 +20,48 @@ const item = {
 }
 
 export default function ProfilePage() {
-  const { profile } = useAuth()
+  const { profile, uploadAvatar } = useAuth()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
 
   if (!profile) return null
+
+  // Step 1: User picks a file — read it as Data URL and open crop modal
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    // Reset input so same file can be chosen again
+    e.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Harap pilih file gambar (JPG/PNG).')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran maksimal gambar adalah 5MB.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => setCropSrc(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  // Step 2: User confirms crop — upload the resulting blob
+  const handleCropConfirm = async (blob: Blob) => {
+    setCropSrc(null)
+    const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+    setIsUploading(true)
+    const { error } = await uploadAvatar(croppedFile)
+    setIsUploading(false)
+
+    if (error) {
+      toast.error('Gagal mengunggah foto profil.')
+    } else {
+      toast.success('Foto profil berhasil diperbarui!')
+    }
+  }
 
   const level = getXPLevel(profile.total_xp)
   const nextLevel = getXPLevel(level.maxXP + 1)
@@ -31,13 +73,23 @@ export default function ProfilePage() {
   const joinDate = format(new Date(profile.created_at), 'd MMMM yyyy', { locale: localeId })
 
   return (
-    <PageContainer>
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="max-w-4xl mx-auto space-y-8"
-      >
+    <>
+      {/* Image Crop Modal */}
+      {cropSrc && (
+        <ImageCropModal
+          imageSrc={cropSrc}
+          onCancel={() => setCropSrc(null)}
+          onCropComplete={handleCropConfirm}
+        />
+      )}
+
+      <PageContainer>
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="max-w-4xl mx-auto space-y-8"
+        >
         {/* Header Title */}
         <div>
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-neutral-800 tracking-tight mb-2">
@@ -56,14 +108,40 @@ export default function ProfilePage() {
 
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8 relative z-10">
             {/* Avatar */}
-            <div className="shrink-0">
-              <div className="w-32 h-32 border-4 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] bg-brutalistYellow flex items-center justify-center text-5xl font-serif font-bold text-neutral-900 overflow-hidden transform transition-transform group-hover:scale-105 group-hover:-rotate-3">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            <div className="shrink-0 relative">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="w-32 h-32 border-4 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] bg-brutalistYellow flex flex-col items-center justify-center text-5xl font-serif font-bold text-neutral-900 overflow-hidden transform transition-all group-hover:scale-105 group-hover:-rotate-3 hover:brightness-90 relative cursor-pointer group/avatar"
+                title="Ganti Foto Profil"
+              >
+                {isUploading ? (
+                  <Loader2 size={32} className="animate-spin text-neutral-900" />
+                ) : profile.avatar_url ? (
+                  <>
+                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                      <Camera size={32} className="text-white" />
+                    </div>
+                  </>
                 ) : (
-                  profile.full_name?.charAt(0)?.toUpperCase() || 'U'
+                  <>
+                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                      <Camera size={32} className="text-neutral-900" />
+                    </div>
+                  </>
                 )}
-              </div>
+              </button>
             </div>
 
             {/* Info */}
@@ -165,5 +243,6 @@ export default function ProfilePage() {
 
       </motion.div>
     </PageContainer>
+    </>
   )
 }

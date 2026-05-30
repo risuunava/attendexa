@@ -61,8 +61,12 @@ export default function Navbar({ setMobileOpen }: TopbarProps) {
           {/* Desktop Dropdown Container */}
           <div className="flex items-center gap-3 group relative cursor-pointer py-2">
             {/* Avatar */}
-            <div className="w-10 h-10 rounded-none border-2 border-neutral-900 bg-brutalistCyan flex items-center justify-center text-neutral-900 text-sm font-bold shadow-[2px_2px_0px_0px_#1F2937] group-hover:-translate-y-0.5 group-hover:-translate-x-0.5 transition-transform">
-              {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+            <div className="w-10 h-10 rounded-none border-2 border-neutral-900 bg-brutalistCyan flex items-center justify-center text-neutral-900 text-sm font-bold shadow-[2px_2px_0px_0px_#1F2937] group-hover:-translate-y-0.5 group-hover:-translate-x-0.5 transition-transform overflow-hidden">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                profile.full_name?.charAt(0)?.toUpperCase() || 'U'
+              )}
             </div>
 
             {/* Dropdown Menu */}

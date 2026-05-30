@@ -39,6 +39,7 @@ interface AuthContextType {
   ) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  uploadAvatar: (file: File) => Promise<{ url: string | null; error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -208,6 +209,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const uploadAvatar = useCallback(
+    async (file: File): Promise<{ url: string | null; error: Error | null }> => {
+      if (!user) return { url: null, error: new Error('User not authenticated') }
+
+      try {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`
+        const filePath = `${user.id}/${fileName}`
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, { upsert: true })
+
+        if (uploadError) throw uploadError
+
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath)
+
+        const publicUrl = publicUrlData.publicUrl
+
+        // Update user profile in database
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ avatar_url: publicUrl })
+          .eq('id', user.id)
+
+        if (updateError) throw updateError
+
+        // Refresh profile locally
+        await refreshProfile()
+
+        return { url: publicUrl, error: null }
+      } catch (err: any) {
+        console.error('Avatar upload error:', err)
+        return { url: null, error: err as Error }
+      }
+    },
+    [user, refreshProfile]
+  )
+
   return (
     <AuthContext.Provider
       value={{
@@ -220,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         refreshProfile,
+        uploadAvatar,
       }}
     >
       {children}
