@@ -175,32 +175,34 @@ export default function DashboardPage() {
             }`}>
               {hasCheckedIn ? (
                 <div className="relative z-10 w-full">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-none border-2 border-neutral-800 bg-success-light shadow-[2px_2px_0px_0px_#1F2937] flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-success" />
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-none border-2 border-neutral-800 bg-success-light shadow-[2px_2px_0px_0px_#1F2937] flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-6 h-6 text-success" />
+                      </div>
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold text-neutral-800">
+                          Sudah Absen Hari Ini
+                        </h2>
+                        <p className="font-mono text-sm text-neutral-600 mt-1">
+                          Pukul {format(new Date(todayRecord.check_in_at), 'HH:mm:ss')} WIB
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="font-serif text-2xl font-bold text-neutral-800">
-                        Sudah Absen Hari Ini
-                      </h2>
-                      <p className="font-mono text-sm text-neutral-600 mt-1">
-                        Pukul {format(new Date(todayRecord.check_in_at), 'HH:mm:ss')} WIB
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-3 mt-6">
-                    <span className={`badge ${getStatusColor(todayRecord.status as any)}`}>
-                      {getStatusLabel(todayRecord.status as any)}
-                    </span>
-                    <span className="badge bg-brutalistYellow text-neutral-900 border-neutral-800 shadow-[2px_2px_0px_0px_#1F2937]">
-                      <Zap size={14} className="mr-1 inline" />+{todayRecord.xp_earned} XP
-                    </span>
-                    {todayRecord.distance_meters !== null && (
-                      <span className="badge bg-white text-neutral-800 border-neutral-800">
-                        <MapPin size={14} className="mr-1 inline" />{todayRecord.distance_meters}m
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`badge ${getStatusColor(todayRecord.status as any)}`}>
+                        {getStatusLabel(todayRecord.status as any)}
                       </span>
-                    )}
+                      <span className="badge bg-brutalistYellow text-neutral-900 border-neutral-800 shadow-[2px_2px_0px_0px_#1F2937]">
+                        <Zap size={14} className="mr-1 inline" />+{todayRecord.xp_earned} XP
+                      </span>
+                      {todayRecord.distance_meters !== null && (
+                        <span className="badge bg-white text-neutral-800 border-neutral-800">
+                          <MapPin size={14} className="mr-1 inline" />{todayRecord.distance_meters}m
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Checkout section */}
