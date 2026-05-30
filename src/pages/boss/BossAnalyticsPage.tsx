@@ -118,10 +118,10 @@ export default function BossAnalyticsPage() {
   const customTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl border border-white/50 shadow-glass-sm">
-          <p className="font-semibold text-neutral-800 mb-2">{label}</p>
+        <div className="bg-white p-4 border-2 border-neutral-800 shadow-[4px_4px_0px_0px_#1F2937] rounded-none">
+          <p className="font-bold text-neutral-900 mb-2 font-mono uppercase">{label}</p>
           {payload.map((p: any) => (
-            <p key={p.dataKey} className="text-sm font-medium" style={{ color: p.color }}>
+            <p key={p.dataKey} className="text-sm font-bold font-mono" style={{ color: p.color }}>
               {p.name}: {p.value} {p.name === 'Rata-rata XP' ? 'XP' : 'Orang'}
             </p>
           ))}
@@ -141,57 +141,65 @@ export default function BossAnalyticsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Dept Chart */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6"
+            className="glass-card p-6 lg:col-span-2 flex flex-col"
           >
             <h2 className="text-lg font-bold text-neutral-800 mb-6 flex items-center gap-2">
               <BarChart3 size={20} className="text-primary" />
               Performa per Departemen
             </h2>
-            <div className="h-[300px]">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={deptStats} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                <BarChart data={deptStats} margin={{ top: 20, right: 20, left: -20, bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 11, fill: '#6B7280' }}
-                    axisLine={{ stroke: '#E5E7EB' }}
+                    tick={{ fontSize: 12, fill: '#1F2937', fontWeight: 'bold' }}
+                    axisLine={{ stroke: '#1F2937', strokeWidth: 2 }}
                     tickLine={false}
                     angle={-45}
                     textAnchor="end"
+                    interval={0}
+                    dy={10}
                   />
                   <YAxis
                     yAxisId="left"
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
-                    axisLine={false}
+                    tick={{ fontSize: 12, fill: '#1F2937', fontWeight: 'bold' }}
+                    axisLine={{ stroke: '#1F2937', strokeWidth: 2 }}
                     tickLine={false}
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
-                    axisLine={false}
+                    tick={{ fontSize: 12, fill: '#1F2937', fontWeight: 'bold' }}
+                    axisLine={{ stroke: '#1F2937', strokeWidth: 2 }}
                     tickLine={false}
                   />
-                  <Tooltip content={customTooltip} />
-                  <Legend verticalAlign="top" height={36} />
+                  <Tooltip cursor={{ fill: '#1F2937', opacity: 0.05 }} content={customTooltip} />
+                  <Legend verticalAlign="top" height={40} wrapperStyle={{ paddingBottom: '20px', fontWeight: 'bold', color: '#1F2937' }} />
                   <Bar
                     yAxisId="left"
                     dataKey="employeeCount"
                     name="Jml Karyawan"
                     fill="#0EA5E9"
-                    radius={[4, 4, 0, 0]}
+                    stroke="#1F2937"
+                    strokeWidth={2}
+                    radius={[0, 0, 0, 0]}
+                    maxBarSize={40}
                   />
                   <Bar
                     yAxisId="right"
                     dataKey="avgXP"
                     name="Rata-rata XP"
                     fill="#7C3AED"
-                    radius={[4, 4, 0, 0]}
+                    stroke="#1F2937"
+                    strokeWidth={2}
+                    radius={[0, 0, 0, 0]}
+                    maxBarSize={40}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -203,15 +211,15 @@ export default function BossAnalyticsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass-card p-6"
+            className="glass-card p-6 lg:col-span-1 flex flex-col"
           >
             <h2 className="text-lg font-bold text-neutral-800 mb-6 flex items-center gap-2">
               <PieChartIcon size={20} className="text-primary" />
               Distribusi Kehadiran
             </h2>
-            <div className="h-[300px] flex items-center justify-center">
+            <div className="h-[400px] flex items-center justify-center w-full">
               {statusDist.every(s => s.value === 0) ? (
-                <p className="text-neutral-500 text-sm">Belum ada data absensi bulan ini.</p>
+                <p className="text-neutral-500 text-sm font-bold">Belum ada data absensi bulan ini.</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -219,27 +227,30 @@ export default function BossAnalyticsPage() {
                       data={statusDist}
                       cx="50%"
                       cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
-                      paddingAngle={5}
+                      innerRadius={90}
+                      outerRadius={130}
+                      paddingAngle={0}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                       labelLine={false}
+                      stroke="#1F2937"
+                      strokeWidth={2}
                     >
                       {statusDist.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="#1F2937" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(8px)',
-                        border: 'none',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                        background: '#FFFFFF',
+                        border: '2px solid #1F2937',
+                        borderRadius: '0',
+                        boxShadow: '4px 4px 0px 0px #1F2937',
+                        fontWeight: 'bold',
+                        fontSize: '14px'
                       }}
                     />
-                    <Legend verticalAlign="bottom" height={36} />
+                    <Legend verticalAlign="bottom" height={40} wrapperStyle={{ fontWeight: 'bold', color: '#1F2937' }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
