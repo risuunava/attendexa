@@ -15,6 +15,12 @@ interface LocationPoint {
   work_end_time: string
 }
 
+interface AttendanceTimeCheck {
+  allowed: boolean
+  minutesUntilAllowed: number
+  workStartTime: string
+}
+
 interface AttendanceState {
   loading: boolean
   submitting: boolean
@@ -96,6 +102,35 @@ export function useAttendance() {
     setState((prev) => ({ ...prev, locationPoints: data as LocationPoint[] }))
     return data as LocationPoint[]
   }, [])
+
+  /**
+   * Check if the current time allows attendance (>= work_start_time)
+   * Returns whether check-in is allowed and how many minutes until allowed.
+   */
+  const checkAttendanceTime = useCallback(
+    (locationPoint?: LocationPoint | null): AttendanceTimeCheck => {
+      const point = locationPoint || state.locationPoints[0]
+      if (!point) {
+        return { allowed: false, minutesUntilAllowed: 0, workStartTime: '08:00' }
+      }
+
+      const workStartTime = point.work_start_time || '08:00'
+      const [startHour, startMinute] = workStartTime.split(':').map(Number)
+      const now = new Date()
+      const workStart = new Date(now)
+      workStart.setHours(startHour, startMinute, 0, 0)
+
+      const diffMs = workStart.getTime() - now.getTime()
+      const minutesUntilAllowed = Math.max(0, Math.ceil(diffMs / 60000))
+
+      return {
+        allowed: now >= workStart,
+        minutesUntilAllowed,
+        workStartTime,
+      }
+    },
+    [state.locationPoints]
+  )
 
   /**
    * Find the nearest location point to the user's GPS coordinates
@@ -188,6 +223,17 @@ export function useAttendance() {
       setState((prev) => ({ ...prev, submitting: true, error: null }))
 
       try {
+        // 0. Check if current time allows attendance
+        const timeCheck = checkAttendanceTime(locationPoint)
+        if (!timeCheck.allowed) {
+          setState((prev) => ({
+            ...prev,
+            submitting: false,
+            error: `Belum waktunya absen. Jam absen dimulai pukul ${timeCheck.workStartTime}. Silakan tunggu ${timeCheck.minutesUntilAllowed} menit lagi.`,
+          }))
+          return null
+        }
+
         // 1. Check if user is within radius
         if (locationPoint.distance > locationPoint.radius_meters) {
           setState((prev) => ({
@@ -269,7 +315,7 @@ export function useAttendance() {
         return null
       }
     },
-    [user, profile, uploadPhoto, refreshProfile]
+    [user, profile, uploadPhoto, refreshProfile, checkAttendanceTime]
   )
 
   /**
@@ -349,5 +395,6 @@ export function useAttendance() {
     findNearestPoint,
     submitAttendance,
     submitCheckout,
+    checkAttendanceTime,
   }
 }

@@ -16,6 +16,8 @@ import {
   Loader2,
   Send,
   AlertCircle,
+  Clock,
+  Info,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -29,6 +31,9 @@ export default function AbsenPage() {
   const [cameraOpen, setCameraOpen] = useState(false)
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [timeAllowed, setTimeAllowed] = useState(true)
+  const [minutesLeft, setMinutesLeft] = useState(0)
+  const [workStartTimeStr, setWorkStartTimeStr] = useState('08:00')
 
   // Fetch location points on mount
   useEffect(() => {
@@ -57,6 +62,20 @@ export default function AbsenPage() {
       setStep('done')
     }
   }, [attendance.todayRecord])
+
+  // Check if current time allows attendance + refresh every 10 seconds
+  useEffect(() => {
+    const checkTime = () => {
+      const nearestPt = attendance.nearestPoint || (attendance.locationPoints.length > 0 ? attendance.locationPoints[0] : null)
+      const result = attendance.checkAttendanceTime(nearestPt as any)
+      setTimeAllowed(result.allowed)
+      setMinutesLeft(result.minutesUntilAllowed)
+      setWorkStartTimeStr(result.workStartTime)
+    }
+    checkTime()
+    const interval = setInterval(checkTime, 10000) // refresh every 10 seconds
+    return () => clearInterval(interval)
+  }, [attendance.nearestPoint, attendance.locationPoints, attendance.checkAttendanceTime])
 
   const handlePhotoCapture = useCallback((blob: Blob) => {
     setPhotoBlob(blob)
@@ -197,12 +216,37 @@ export default function AbsenPage() {
                 />
               </div>
 
+              {/* Early attendance warning */}
+              {!timeAllowed && (
+                <div className="p-4 border-2 border-warning bg-warning/10 flex items-start gap-3">
+                  <div className="w-10 h-10 border-2 border-neutral-800 bg-warning flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937] shrink-0">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-neutral-800 text-sm">
+                      Belum Waktunya Absen
+                    </p>
+                    <p className="text-xs text-neutral-600 mt-1">
+                      Jam absen dimulai pukul <span className="font-mono font-bold text-neutral-800">{workStartTimeStr}</span>.
+                      {minutesLeft > 0 && (
+                        <> Silakan tunggu <span className="font-mono font-bold text-warning">{minutesLeft} menit</span> lagi.</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={() => setStep('camera')}
-                disabled={!isInRange}
+                disabled={!isInRange || !timeAllowed}
                 className="btn-primary w-full py-4"
               >
-                {!isInRange && nearestPoint ? (
+                {!timeAllowed ? (
+                  <>
+                    <Clock className="w-5 h-5" />
+                    Belum Jam Absen ({workStartTimeStr})
+                  </>
+                ) : !isInRange && nearestPoint ? (
                   <>
                     <AlertCircle className="w-5 h-5" />
                     Di Luar Area ({nearestPoint.distance}m)

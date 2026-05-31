@@ -19,6 +19,7 @@ import {
   Target,
   LogOut,
   Loader2,
+  Info,
 } from 'lucide-react'
 import { supabase } from '../../libs/supabase'
 import toast from 'react-hot-toast'
@@ -31,7 +32,7 @@ interface MonthlyStats {
 
 export default function DashboardPage() {
   const { profile } = useAuth()
-  const { todayRecord, fetchTodayRecord, fetchLocationPoints, locationPoints, submitCheckout, submitting, error: attendanceError } = useAttendance()
+  const { todayRecord, fetchTodayRecord, fetchLocationPoints, locationPoints, submitCheckout, submitting, error: attendanceError, checkAttendanceTime } = useAttendance()
   const [stats, setStats] = useState<MonthlyStats>({
     total_hadir: 0,
     total_terlambat: 0,
@@ -40,12 +41,48 @@ export default function DashboardPage() {
   const [checkoutDone, setCheckoutDone] = useState(false)
   const [canCheckout, setCanCheckout] = useState(false)
   const [checkoutTimeStr, setCheckoutTimeStr] = useState('17:00')
+  const [timeAllowed, setTimeAllowed] = useState(true)
+  const [minutesLeft, setMinutesLeft] = useState(0)
+  const [workStartTimeStr, setWorkStartTimeStr] = useState('08:00')
 
   useEffect(() => {
     fetchTodayRecord()
     fetchLocationPoints()
     fetchMonthlyStats()
   }, [fetchTodayRecord])
+
+  // Check if current time allows attendance
+  useEffect(() => {
+    const checkTime = () => {
+      const point = locationPoints.length > 0 ? locationPoints[0] : null
+      const result = checkAttendanceTime(point as any)
+      setTimeAllowed(result.allowed)
+      setMinutesLeft(result.minutesUntilAllowed)
+      setWorkStartTimeStr(result.workStartTime)
+    }
+    checkTime()
+    const interval = setInterval(checkTime, 30000) // refresh every 30 seconds
+    return () => clearInterval(interval)
+  }, [locationPoints, checkAttendanceTime])
+
+  // Midnight auto-reset: refresh todayRecord at 00:00 so the dashboard resets
+  useEffect(() => {
+    const now = new Date()
+    const midnight = new Date(now)
+    midnight.setDate(midnight.getDate() + 1)
+    midnight.setHours(0, 0, 0, 0)
+    const msUntilMidnight = midnight.getTime() - now.getTime()
+
+    const midnightTimer = setTimeout(() => {
+      // Reset all states at midnight
+      fetchTodayRecord()
+      fetchMonthlyStats()
+      setCheckoutDone(false)
+      setCanCheckout(false)
+    }, msUntilMidnight)
+
+    return () => clearTimeout(midnightTimer)
+  }, [fetchTodayRecord]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMonthlyStats = async () => {
     if (!profile) return
@@ -254,20 +291,44 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                  <div>
-                    <h2 className="font-serif text-2xl md:text-3xl font-bold text-neutral-800 mb-2">
-                      Belum Absen Hari Ini
-                    </h2>
-                    <p className="text-neutral-600 font-medium">
-                      Jangan sampai terlambat, segera amankan XP kamu hari ini.
-                    </p>
+                <div className="relative z-10 flex flex-col gap-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div>
+                      <h2 className="font-serif text-2xl md:text-3xl font-bold text-neutral-800 mb-2">
+                        Belum Absen Hari Ini
+                      </h2>
+                      <p className="text-neutral-600 font-medium">
+                        {timeAllowed
+                          ? 'Jangan sampai terlambat, segera amankan XP kamu hari ini.'
+                          : `Jam absen dimulai pukul ${workStartTimeStr}. Silakan tunggu.`}
+                      </p>
+                    </div>
+                    <Link to="/absen" className={`btn-primary whitespace-nowrap text-base px-8 py-4 ${!timeAllowed ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <Clock className="w-5 h-5" />
+                      {timeAllowed ? 'Absen Sekarang' : `Jam ${workStartTimeStr}`}
+                      {timeAllowed && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                    </Link>
                   </div>
-                  <Link to="/absen" className="btn-primary whitespace-nowrap text-base px-8 py-4">
-                    <Clock className="w-5 h-5" />
-                    Absen Sekarang
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+
+                  {/* Time restriction info banner */}
+                  {!timeAllowed && (
+                    <div className="p-4 border-2 border-warning bg-warning/10 flex items-start gap-3">
+                      <div className="w-10 h-10 border-2 border-neutral-800 bg-warning flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937] shrink-0">
+                        <Info className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-800 text-sm">
+                          ⏰ Belum Waktunya Absen
+                        </p>
+                        <p className="text-xs text-neutral-600 mt-1">
+                          Absen akan dibuka pukul <span className="font-mono font-bold text-neutral-800">{workStartTimeStr} WIB</span>.
+                          {minutesLeft > 0 && (
+                            <> Tersisa <span className="font-mono font-bold text-warning">{minutesLeft} menit</span> lagi sebelum absen dibuka.</>  
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
