@@ -17,14 +17,14 @@ Attendexa adalah platform absensi digital berbasis web dengan gaya Neo-Brutalist
 ## Preview
 
 <p align="center">
-  <img src="./assets/dashboard.png" width="90%" />
+  <img src="./assets.preview/dashboard.png" width="90%" />
 </p>
 
 <br>
 
 <p align="center">
-  <img src="./assets/profile.png" width="45%" />
-  <img src="./assets/leaderboard.png" width="45%" />
+  <img src="./assets.preview/profile.png" width="45%" />
+  <img src="./assets.preview/leaderboard.png" width="45%" />
 </p>
 
 ## Setup Lokal
