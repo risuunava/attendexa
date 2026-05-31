@@ -17,7 +17,6 @@ import {
   Send,
   AlertCircle,
   Clock,
-  Info,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 

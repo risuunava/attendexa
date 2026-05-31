@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# Attendexa - Sistem Absensi dengan Gamifikasi
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Attendexa adalah platform absensi digital berbasis web dengan gaya Neo-Brutalist Light Mode. Aplikasi ini menggabungkan fitur absensi berbasis lokasi GPS dan verifikasi wajah (Face Recognition via kamera) dengan sistem gamifikasi leaderboard XP yang mendorong kedisiplinan karyawan secara organik.
 
-Currently, two official plugins are available:
+## Tech Stack
+- React 19 + TypeScript
+- Vite 6
+- Tailwind CSS (Neo-Brutalist Design)
+- Supabase (Auth, Database, Storage)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Fitur Utama
+- **Absensi Berbasis Lokasi & Foto**: Memastikan karyawan berada di area kantor saat melakukan absensi.
+- **Gamifikasi & XP**: Memberikan poin XP untuk kehadiran tepat waktu dan streak harian.
+- **Leaderboard**: Papan peringkat bulanan untuk memotivasi karyawan.
+- **Dashboard Karyawan**: Ringkasan kehadiran dan level XP.
 
-## React Compiler
+## Preview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<p align="center">
+  <img src="./assets/dashboard.png" width="90%" />
+</p>
 
-## Expanding the ESLint configuration
+<br>
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+<p align="center">
+  <img src="./assets/profile.png" width="45%" />
+  <img src="./assets/leaderboard.png" width="45%" />
+</p>
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup Lokal
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Clone repositori ini
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy file `.env.example` ke `.env` dan isi variabel Supabase:
+   ```bash
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. Jalankan development server:
+   ```bash
+   npm run dev
+   ```
