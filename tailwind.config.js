@@ -31,6 +31,7 @@ export default {
         brutalistPink: '#F472B6',
         brutalistCyan: '#22D3EE',
         brutalistWhite: '#F8FAFC',
+        brutalistBlue: '#3B82F6',
         success: {
           DEFAULT: '#059669',
           light: '#D1FAE5',

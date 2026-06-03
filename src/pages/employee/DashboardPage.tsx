@@ -24,6 +24,8 @@ import {
 import { supabase } from '../../libs/supabase'
 import toast from 'react-hot-toast'
 
+import { ShiftInfoBanner } from '../../components/attendance/ShiftInfoBanner'
+
 interface MonthlyStats {
   total_hadir: number
   total_terlambat: number
@@ -32,7 +34,7 @@ interface MonthlyStats {
 
 export default function DashboardPage() {
   const { profile } = useAuth()
-  const { todayRecord, fetchTodayRecord, fetchLocationPoints, locationPoints, submitCheckout, submitting, error: attendanceError, checkAttendanceTime } = useAttendance()
+  const { todayRecord, fetchTodayRecord, fetchLocationPoints, locationPoints, submitCheckout, submitting, error: attendanceError, checkAttendanceTime, checkCheckoutTime, activeShift, workDateResult, workDateStr } = useAttendance()
   const [stats, setStats] = useState<MonthlyStats>({
     total_hadir: 0,
     total_terlambat: 0,
@@ -63,7 +65,7 @@ export default function DashboardPage() {
     checkTime()
     const interval = setInterval(checkTime, 30000) // refresh every 30 seconds
     return () => clearInterval(interval)
-  }, [locationPoints, checkAttendanceTime])
+  }, [locationPoints, checkAttendanceTime, activeShift])
 
   // Midnight auto-reset: refresh todayRecord at 00:00 so the dashboard resets
   useEffect(() => {
@@ -111,47 +113,22 @@ export default function DashboardPage() {
 
   // Check if checkout is possible
   useEffect(() => {
-    if (todayRecord && !todayRecord.check_out_at && locationPoints.length > 0) {
-      // Find the location point used for check-in
-      const locPoint = locationPoints.find(
-        (lp: any) => lp.id === (todayRecord as any).location_point_id
-      ) || locationPoints[0]
-
-      if (locPoint) {
-        const endTime = (locPoint as any).work_end_time || '17:00'
-        setCheckoutTimeStr(endTime)
-        const [endHour, endMinute] = endTime.split(':').map(Number)
-        const now = new Date()
-        const workEnd = new Date(now)
-        workEnd.setHours(endHour, endMinute, 0, 0)
-        setCanCheckout(now >= workEnd)
+    const updateCheckoutStatus = () => {
+      if (todayRecord && !todayRecord.check_out_at) {
+        const point = locationPoints.length > 0 ? locationPoints[0] : null
+        const result = checkCheckoutTime(point as any)
+        setCanCheckout(result.allowed)
+        setCheckoutTimeStr(result.workEndTime)
+      }
+      if (todayRecord?.check_out_at) {
+        setCheckoutDone(true)
       }
     }
-    if (todayRecord?.check_out_at) {
-      setCheckoutDone(true)
-    }
-  }, [todayRecord, locationPoints])
 
-  // Refresh canCheckout every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (todayRecord && !todayRecord.check_out_at && locationPoints.length > 0) {
-        const locPoint = locationPoints.find(
-          (lp: any) => lp.id === (todayRecord as any).location_point_id
-        ) || locationPoints[0]
-
-        if (locPoint) {
-          const endTime = (locPoint as any).work_end_time || '17:00'
-          const [endHour, endMinute] = endTime.split(':').map(Number)
-          const now = new Date()
-          const workEnd = new Date(now)
-          workEnd.setHours(endHour, endMinute, 0, 0)
-          setCanCheckout(now >= workEnd)
-        }
-      }
-    }, 30000) // check every 30 seconds
+    updateCheckoutStatus()
+    const interval = setInterval(updateCheckoutStatus, 30000)
     return () => clearInterval(interval)
-  }, [todayRecord, locationPoints])
+  }, [todayRecord, locationPoints, checkCheckoutTime, activeShift])
 
   const handleCheckout = async () => {
     if (!todayRecord || !locationPoints.length) return
@@ -201,6 +178,13 @@ export default function DashboardPage() {
             {todayDate}
           </p>
         </div>
+
+        {/* Shift Banner */}
+        {workDateResult && (
+          <div className="mb-6">
+            <ShiftInfoBanner workDateResult={workDateResult} workDateStr={workDateStr} />
+          </div>
+        )}
 
         {/* BENTO GRID LAYOUT */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

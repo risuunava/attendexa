@@ -10,8 +10,10 @@ import {
   X,
   Shield,
   Loader2,
+  CalendarDays,
+  Clock
 } from 'lucide-react'
-import { motion, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
 
@@ -26,6 +28,13 @@ interface Employee {
   total_xp: number
   streak_days: number
   created_at: string
+}
+
+interface ShiftOption {
+  id: string
+  name: string
+  start_time: string
+  end_time: string
 }
 
 const roleLabels: Record<UserRole, string> = {
@@ -59,6 +68,16 @@ export default function ManageEmployeesPage() {
   const [editDept, setEditDept] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // Scheduling State
+  const [schedulingId, setSchedulingId] = useState<string | null>(null)
+  const [shifts, setShifts] = useState<ShiftOption[]>([])
+  const [selectedShift, setSelectedShift] = useState('')
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date()
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  })
+  const [scheduling, setScheduling] = useState(false)
+
   useEffect(() => {
     fetchEmployees()
   }, [])
@@ -73,13 +92,25 @@ export default function ManageEmployeesPage() {
     if (!error && data) {
       setEmployees(data as Employee[])
     }
+    
+    // Fetch shifts for the dropdown
+    const { data: shiftData } = await supabase.from('shifts').select('id, name, start_time, end_time')
+    if (shiftData) setShifts(shiftData)
+
     setLoading(false)
   }
 
   const startEditing = (emp: Employee) => {
     setEditingId(emp.id)
+    setSchedulingId(null)
     setEditRole(emp.role)
     setEditDept(emp.department || '')
+  }
+
+  const startScheduling = (emp: Employee) => {
+    setSchedulingId(emp.id)
+    setEditingId(null)
+    if (shifts.length > 0) setSelectedShift(shifts[0].id)
   }
 
   const cancelEditing = () => {
@@ -106,6 +137,28 @@ export default function ManageEmployeesPage() {
       fetchEmployees()
     }
     setSaving(false)
+  }
+
+  const saveSchedule = async (empId: string) => {
+    if (!selectedShift || !selectedDate) {
+      toast.error('Pilih shift dan tanggal terlebih dahulu')
+      return
+    }
+    setScheduling(true)
+    const { error } = await supabase
+      .from('user_shifts')
+      .upsert(
+        { user_id: empId, shift_id: selectedShift, work_date: selectedDate },
+        { onConflict: 'user_id, work_date' }
+      )
+    
+    if (error) {
+      toast.error('Gagal mengatur shift: ' + error.message)
+    } else {
+      toast.success('Jadwal shift berhasil diatur!')
+      setSchedulingId(null)
+    }
+    setScheduling(false)
   }
 
   const filtered = employees.filter(
@@ -178,6 +231,7 @@ export default function ManageEmployeesPage() {
             {filtered.map((emp) => {
               const level = getXPLevel(emp.total_xp)
               const isEditing = editingId === emp.id
+              const isScheduling = schedulingId === emp.id
 
               return (
                 <motion.div
@@ -185,7 +239,7 @@ export default function ManageEmployeesPage() {
                   variants={itemVars}
                   className={clsx(
                     'glass-card p-4 lg:p-5 transition-all',
-                    isEditing ? 'ring-2 ring-primary/30 shadow-glass' : 'hover:shadow-glass-sm'
+                    (isEditing || isScheduling) ? 'ring-2 ring-primary/30 shadow-glass' : 'hover:shadow-glass-sm'
                   )}
                 >
                   {/* Mobile Layout */}
@@ -211,14 +265,22 @@ export default function ManageEmployeesPage() {
                       <span className="text-sm text-neutral-600">
                         {level.emoji} {emp.total_xp} XP
                       </span>
-                      {!isEditing ? (
-                        <button
-                          onClick={() => startEditing(emp)}
-                          className="text-primary hover:text-primary-600 text-sm font-medium flex items-center gap-1"
-                        >
-                          <Edit3 size={14} /> Edit
-                        </button>
-                      ) : (
+                      {!isEditing && !isScheduling ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startScheduling(emp)}
+                            className="text-neutral-500 hover:text-primary-600 text-sm font-medium flex items-center gap-1"
+                          >
+                            <CalendarDays size={14} /> Shift
+                          </button>
+                          <button
+                            onClick={() => startEditing(emp)}
+                            className="text-primary hover:text-primary-600 text-sm font-medium flex items-center gap-1"
+                          >
+                            <Edit3 size={14} /> Edit
+                          </button>
+                        </div>
+                      ) : isEditing ? (
                         <div className="flex gap-2">
                           <button
                             onClick={cancelEditing}
@@ -233,6 +295,23 @@ export default function ManageEmployeesPage() {
                           >
                             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                             Simpan
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setSchedulingId(null)}
+                            className="text-neutral-500 hover:text-neutral-700 text-sm"
+                          >
+                            <X size={16} />
+                          </button>
+                          <button
+                            onClick={() => saveSchedule(emp.id)}
+                            disabled={scheduling}
+                            className="text-success hover:text-emerald-700 text-sm font-medium flex items-center gap-1"
+                          >
+                            {scheduling ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            Simpan Shift
                           </button>
                         </div>
                       )}
@@ -263,6 +342,36 @@ export default function ManageEmployeesPage() {
                             value={editDept}
                             onChange={(e) => setEditDept(e.target.value)}
                             placeholder="e.g. IT, HR"
+                            className="input-field text-sm py-2"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {isScheduling && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-100"
+                      >
+                        <div>
+                          <label className="text-xs font-medium text-neutral-600 mb-1 block">Pilih Shift</label>
+                          <select
+                            value={selectedShift}
+                            onChange={(e) => setSelectedShift(e.target.value)}
+                            className="input-field text-sm py-2"
+                          >
+                            {shifts.map(s => (
+                              <option key={s.id} value={s.id}>{s.name} ({s.start_time.slice(0,5)} - {s.end_time.slice(0,5)})</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-neutral-600 mb-1 block">Tanggal Berlakunya</label>
+                          <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
                             className="input-field text-sm py-2"
                           />
                         </div>
@@ -342,16 +451,85 @@ export default function ManageEmployeesPage() {
                             Simpan
                           </button>
                         </>
+                      ) : isScheduling ? (
+                        <>
+                          <button
+                            onClick={() => setSchedulingId(null)}
+                            className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                          <button
+                            onClick={() => saveSchedule(emp.id)}
+                            disabled={scheduling}
+                            className="btn-primary !px-4 !py-2 text-sm"
+                          >
+                            {scheduling ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            Simpan Shift
+                          </button>
+                        </>
                       ) : (
-                        <button
-                          onClick={() => startEditing(emp)}
-                          className="p-2 rounded-lg hover:bg-primary-50 text-primary transition-colors"
-                        >
-                          <Edit3 size={16} />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => startScheduling(emp)}
+                            className="p-2 rounded-lg hover:bg-primary-50 text-neutral-500 transition-colors"
+                            title="Atur Shift"
+                          >
+                            <CalendarDays size={16} />
+                          </button>
+                          <button
+                            onClick={() => startEditing(emp)}
+                            className="p-2 rounded-lg hover:bg-primary-50 text-primary transition-colors"
+                            title="Edit User"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
+
+                  {/* Desktop Scheduling Dropdown */}
+                  <AnimatePresence>
+                    {isScheduling && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="hidden lg:block overflow-hidden"
+                      >
+                        <div className="mt-4 p-4 bg-neutral-50 border-t-2 border-dashed border-neutral-200 rounded-b-xl flex gap-4 items-end">
+                          <div className="flex-1">
+                            <label className="text-xs font-bold text-neutral-700 mb-1.5 block">Pilih Jadwal Shift</label>
+                            <div className="relative">
+                              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                              <select
+                                value={selectedShift}
+                                onChange={(e) => setSelectedShift(e.target.value)}
+                                className="input-field pl-9 bg-white"
+                              >
+                                {shifts.map(s => (
+                                  <option key={s.id} value={s.id}>{s.name} ({s.start_time.slice(0,5)} - {s.end_time.slice(0,5)})</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-xs font-bold text-neutral-700 mb-1.5 block">Tanggal Berlakunya</label>
+                            <div className="relative">
+                              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
+                              <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="input-field pl-9 bg-white font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )
             })}

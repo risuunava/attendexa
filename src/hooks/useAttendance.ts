@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { calculateXP } from '../lib/xpCalculator'
 import { calculateDistance } from '../lib/haversine'
 import imageCompression from 'browser-image-compression'
+import { getWorkDate, formatDateLocal } from '../lib/workDate'
+import type { UserShift, WorkDateResult } from '../types/shift'
 
 interface LocationPoint {
   id: string
@@ -21,6 +23,11 @@ interface AttendanceTimeCheck {
   workStartTime: string
 }
 
+interface CheckoutTimeCheck {
+  allowed: boolean
+  workEndTime: string
+}
+
 interface AttendanceState {
   loading: boolean
   submitting: boolean
@@ -28,6 +35,9 @@ interface AttendanceState {
   todayRecord: TodayRecord | null
   locationPoints: LocationPoint[]
   nearestPoint: (LocationPoint & { distance: number }) | null
+  activeShift: UserShift | null
+  workDateResult: WorkDateResult | null
+  workDateStr: string | null
 }
 
 interface TodayRecord {
@@ -57,6 +67,9 @@ export function useAttendance() {
     todayRecord: null,
     locationPoints: [],
     nearestPoint: null,
+    activeShift: null,
+    workDateResult: null,
+    workDateStr: null,
   })
 
   /**
@@ -65,23 +78,41 @@ export function useAttendance() {
   const fetchTodayRecord = useCallback(async () => {
     if (!user) return
 
-    const today = new Date()
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString()
+    const now = new Date()
+    const todayStr = formatDateLocal(now)
+    const yesterdayStr = formatDateLocal(new Date(now.getTime() - 24 * 60 * 60 * 1000))
+
+    const { data: shiftData } = await supabase
+      .from('user_shifts')
+      .select('*, shift:shifts(*)')
+      .eq('user_id', user.id)
+      .in('work_date', [todayStr, yesterdayStr])
+      .order('work_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      
+    const activeShift = shiftData as UserShift | null
+    const workDateResult = getWorkDate(now, activeShift)
+    const workDateStr = formatDateLocal(workDateResult.work_date)
 
     const { data, error } = await supabase
       .from('attendance_records')
       .select('*')
       .eq('user_id', user.id)
-      .gte('check_in_at', startOfDay)
-      .lt('check_in_at', endOfDay)
+      .eq('work_date', workDateStr)
       .maybeSingle()
 
     if (error) {
       console.error('Error fetching today record:', error)
     }
 
-    setState((prev) => ({ ...prev, todayRecord: data as TodayRecord | null }))
+    setState((prev) => ({ 
+      ...prev, 
+      todayRecord: data as TodayRecord | null,
+      activeShift,
+      workDateResult,
+      workDateStr
+    }))
     return data
   }, [user])
 
@@ -109,27 +140,71 @@ export function useAttendance() {
    */
   const checkAttendanceTime = useCallback(
     (locationPoint?: LocationPoint | null): AttendanceTimeCheck => {
-      const point = locationPoint || state.locationPoints[0]
-      if (!point) {
-        return { allowed: false, minutesUntilAllowed: 0, workStartTime: '08:00' }
+      let workStart = new Date()
+      let workStartTime = '08:00'
+      const now = new Date()
+      
+      if (state.workDateResult?.shift_window) {
+        workStart = state.workDateResult.shift_window.start
+        const hours = workStart.getHours().toString().padStart(2, '0')
+        const mins = workStart.getMinutes().toString().padStart(2, '0')
+        workStartTime = `${hours}:${mins}`
+      } else {
+        const point = locationPoint || state.locationPoints[0]
+        if (!point) {
+          return { allowed: false, minutesUntilAllowed: 0, workStartTime: '08:00' }
+        }
+        workStartTime = point.work_start_time || '08:00'
+        const [startHour, startMinute] = workStartTime.split(':').map(Number)
+        workStart = new Date(now)
+        workStart.setHours(startHour, startMinute, 0, 0)
       }
 
-      const workStartTime = point.work_start_time || '08:00'
-      const [startHour, startMinute] = workStartTime.split(':').map(Number)
-      const now = new Date()
-      const workStart = new Date(now)
-      workStart.setHours(startHour, startMinute, 0, 0)
-
-      const diffMs = workStart.getTime() - now.getTime()
+      // Allow check-in 30 minutes before shift starts
+      const allowedTime = new Date(workStart.getTime() - 30 * 60000)
+      const diffMs = allowedTime.getTime() - now.getTime()
       const minutesUntilAllowed = Math.max(0, Math.ceil(diffMs / 60000))
 
       return {
-        allowed: now >= workStart,
+        allowed: now >= allowedTime,
         minutesUntilAllowed,
         workStartTime,
       }
     },
-    [state.locationPoints]
+    [state.locationPoints, state.workDateResult]
+  )
+
+  /**
+   * Check if the current time allows checkout (>= work_end_time)
+   */
+  const checkCheckoutTime = useCallback(
+    (locationPoint?: LocationPoint | null): CheckoutTimeCheck => {
+      let workEnd = new Date()
+      let workEndTime = '17:00'
+      const now = new Date()
+
+      if (state.workDateResult?.shift_window) {
+        workEnd = state.workDateResult.shift_window.end
+        const hours = workEnd.getHours().toString().padStart(2, '0')
+        const mins = workEnd.getMinutes().toString().padStart(2, '0')
+        workEndTime = `${hours}:${mins}`
+      } else {
+        const point = locationPoint || state.locationPoints[0]
+        if (!point) {
+          return { allowed: false, workEndTime: '17:00' }
+        }
+        workEndTime = point.work_end_time || '17:00'
+        const [endHour, endMinute] = workEndTime.split(':').map(Number)
+        workEnd = new Date(now)
+        workEnd.setHours(endHour, endMinute, 0, 0)
+      }
+
+      return {
+        allowed: now >= workEnd,
+        workEndTime,
+      }
+    },
+    [state.locationPoints, state.workDateResult]
   )
 
   /**
@@ -249,13 +324,19 @@ export function useAttendance() {
 
         // 3. Calculate XP
         const now = new Date()
-        const xpResult = calculateXP(now, locationPoint.work_start_time)
+        const xpResult = calculateXP(
+          now, 
+          locationPoint.work_start_time, 
+          state.workDateResult?.shift_window?.start
+        )
 
         // 4. Create attendance record
         const { data: record, error: insertError } = await supabase
           .from('attendance_records')
           .insert({
             user_id: user.id,
+            work_date: state.workDateStr,
+            shift_id: state.activeShift?.shift_id || null,
             check_in_at: now.toISOString(),
             photo_url: photoUrl,
             latitude,
@@ -315,7 +396,7 @@ export function useAttendance() {
         return null
       }
     },
-    [user, profile, uploadPhoto, refreshProfile, checkAttendanceTime]
+    [user, profile, uploadPhoto, refreshProfile, checkAttendanceTime, state.workDateStr, state.activeShift, state.workDateResult]
   )
 
   /**
@@ -334,16 +415,12 @@ export function useAttendance() {
       }
 
       // Check if current time >= work_end_time
-      const now = new Date()
-      const [endHour, endMinute] = (locationPoint.work_end_time || '17:00').split(':').map(Number)
-      const workEnd = new Date(now)
-      workEnd.setHours(endHour, endMinute, 0, 0)
+      const checkoutCheck = checkCheckoutTime(locationPoint)
 
-      if (now < workEnd) {
-        const timeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`
+      if (!checkoutCheck.allowed) {
         setState((prev) => ({
           ...prev,
-          error: `Belum waktunya pulang. Jam pulang: ${timeStr}`,
+          error: `Belum waktunya pulang. Jam pulang: ${checkoutCheck.workEndTime}`,
         }))
         return null
       }
@@ -353,7 +430,7 @@ export function useAttendance() {
       try {
         const { data, error: updateError } = await supabase
           .from('attendance_records')
-          .update({ check_out_at: now.toISOString() })
+          .update({ check_out_at: new Date().toISOString() })
           .eq('id', state.todayRecord.id)
           .select()
           .single()
@@ -396,5 +473,6 @@ export function useAttendance() {
     submitAttendance,
     submitCheckout,
     checkAttendanceTime,
+    checkCheckoutTime,
   }
 }

@@ -22,13 +22,17 @@ export interface XPResult {
  */
 export function calculateXP(
   checkInTime: Date,
-  workStartTime: string = '08:00'
+  workStartTime: string = '08:00',
+  customStartDateTime?: Date
 ): XPResult {
-  const [startHour, startMinute] = workStartTime.split(':').map(Number);
-
-  // Create a Date for the work start time on the same day as check-in
-  const workStart = new Date(checkInTime);
-  workStart.setHours(startHour, startMinute, 0, 0);
+  let workStart: Date;
+  if (customStartDateTime) {
+    workStart = customStartDateTime;
+  } else {
+    const [startHour, startMinute] = workStartTime.split(':').map(Number);
+    workStart = new Date(checkInTime);
+    workStart.setHours(startHour, startMinute, 0, 0);
+  }
 
   const diffMs = checkInTime.getTime() - workStart.getTime();
   const minutesLate = Math.max(0, Math.floor(diffMs / 60000));

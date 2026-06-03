@@ -23,6 +23,7 @@ import ManageEmployeesPage from './pages/admin/ManageEmployeesPage'
 import ManageAttendancePage from './pages/admin/ManageAttendancePage'
 import ManageLocationsPage from './pages/admin/ManageLocationsPage'
 import ManageLeavesPage from './pages/admin/ManageLeavesPage'
+import ManageShiftsPage from './pages/admin/ManageShiftsPage'
 
 // Boss
 import BossDashboardPage from './pages/boss/BossDashboardPage'
@@ -135,6 +136,7 @@ function App() {
           <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/karyawan" element={<ProtectedRoute allowedRoles={['admin']}><ManageEmployeesPage /></ProtectedRoute>} />
           <Route path="/admin/absensi" element={<ProtectedRoute allowedRoles={['admin']}><ManageAttendancePage /></ProtectedRoute>} />
+          <Route path="/admin/shifts" element={<ProtectedRoute allowedRoles={['admin']}><ManageShiftsPage /></ProtectedRoute>} />
           <Route path="/admin/lokasi" element={<ProtectedRoute allowedRoles={['admin']}><ManageLocationsPage /></ProtectedRoute>} />
           <Route path="/admin/izin" element={<ProtectedRoute allowedRoles={['admin']}><ManageLeavesPage /></ProtectedRoute>} />
 

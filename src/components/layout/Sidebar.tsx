@@ -10,6 +10,7 @@ import {
   Users,
   BarChart3,
   CalendarCheck,
+  Clock,
   X
 } from 'lucide-react'
 
@@ -29,6 +30,7 @@ const employeeNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Karyawan', path: '/admin/karyawan', icon: <Users size={18} /> },
+  { label: 'Jadwal Shift', path: '/admin/shifts', icon: <Clock size={18} /> },
   { label: 'Absensi', path: '/admin/absensi', icon: <CalendarCheck size={18} /> },
   { label: 'Lokasi', path: '/admin/lokasi', icon: <MapPin size={18} /> },
   { label: 'Izin', path: '/admin/izin', icon: <FileText size={18} /> },

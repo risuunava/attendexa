@@ -9,7 +9,6 @@ import {
   Save,
   X,
   Loader2,
-  Clock,
   Navigation,
   ToggleLeft,
   ToggleRight,
@@ -24,8 +23,6 @@ interface LocationPoint {
   latitude: number
   longitude: number
   radius_meters: number
-  work_start_time: string
-  work_end_time: string
   is_active: boolean
   created_at: string
 }
@@ -52,8 +49,6 @@ export default function ManageLocationsPage() {
   const [formLat, setFormLat] = useState('')
   const [formLng, setFormLng] = useState('')
   const [formRadius, setFormRadius] = useState('100')
-  const [formStartTime, setFormStartTime] = useState('08:00')
-  const [formEndTime, setFormEndTime] = useState('17:00')
 
   useEffect(() => {
     fetchLocations()
@@ -77,8 +72,6 @@ export default function ManageLocationsPage() {
     setFormLat('')
     setFormLng('')
     setFormRadius('100')
-    setFormStartTime('08:00')
-    setFormEndTime('17:00')
     setEditingId(null)
   }
 
@@ -88,8 +81,6 @@ export default function ManageLocationsPage() {
     setFormLat(String(loc.latitude))
     setFormLng(String(loc.longitude))
     setFormRadius(String(loc.radius_meters))
-    setFormStartTime(loc.work_start_time)
-    setFormEndTime(loc.work_end_time || '17:00')
     setShowForm(true)
   }
 
@@ -106,8 +97,8 @@ export default function ManageLocationsPage() {
       latitude: parseFloat(formLat),
       longitude: parseFloat(formLng),
       radius_meters: parseInt(formRadius) || 100,
-      work_start_time: formStartTime,
-      work_end_time: formEndTime,
+      work_start_time: '00:00:00', // Dummy value for db constraint
+      work_end_time: '00:00:00',   // Dummy value for db constraint
     }
 
     if (editingId) {
@@ -267,7 +258,7 @@ export default function ManageLocationsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-1.5">
                       Radius (meter)
@@ -278,30 +269,6 @@ export default function ManageLocationsPage() {
                       onChange={(e) => setFormRadius(e.target.value)}
                       min="10"
                       max="5000"
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      <Clock size={14} className="inline mr-1" />
-                      Jam Masuk
-                    </label>
-                    <input
-                      type="time"
-                      value={formStartTime}
-                      onChange={(e) => setFormStartTime(e.target.value)}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      <Clock size={14} className="inline mr-1" />
-                      Jam Pulang
-                    </label>
-                    <input
-                      type="time"
-                      value={formEndTime}
-                      onChange={(e) => setFormEndTime(e.target.value)}
                       className="input-field"
                     />
                   </div>
@@ -397,14 +364,6 @@ export default function ManageLocationsPage() {
                   <div className="flex items-center gap-4 flex-wrap">
                     <span className="flex items-center gap-1">
                       📏 {loc.radius_meters}m
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} className="text-primary" />
-                      Masuk: {loc.work_start_time}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} className="text-warning" />
-                      Pulang: {loc.work_end_time || '17:00'}
                     </span>
                   </div>
                 </div>
