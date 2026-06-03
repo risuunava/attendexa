@@ -40,6 +40,7 @@ const bossNav: NavItem[] = [
   { label: 'Dashboard', path: '/boss/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Analytics', path: '/boss/analytics', icon: <BarChart3 size={18} /> },
   { label: 'Leaderboard', path: '/boss/leaderboard', icon: <Trophy size={18} /> },
+  { label: 'Izin', path: '/boss/izin', icon: <FileText size={18} /> },
 ]
 
 interface SidebarProps {

@@ -128,45 +128,45 @@ export default function AbsenPage() {
 
       <div className="max-w-lg mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 rounded-xl hover:bg-white/50 transition-colors"
+            className="p-3 border-2 border-neutral-900 bg-white hover:bg-neutral-100 hover:shadow-[4px_4px_0px_0px_#1F2937] hover:-translate-y-0.5 hover:-translate-x-0.5 transition-all"
           >
-            <ArrowLeft size={20} className="text-neutral-600" />
+            <ArrowLeft size={24} className="text-neutral-900" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-neutral-800">Absen Sekarang</h1>
-            <p className="text-sm text-neutral-500">Verifikasi lokasi & foto selfie</p>
+            <h1 className="text-2xl md:text-3xl font-black text-neutral-900 uppercase tracking-tight">Absen Sekarang</h1>
+            <p className="text-sm font-bold font-mono text-neutral-500 mt-1 uppercase tracking-widest">Verifikasi lokasi & foto selfie</p>
           </div>
         </div>
 
         {/* Steps Indicator */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-8">
           {(['gps', 'camera', 'review'] as Step[]).map((s, i) => (
             <div key={s} className="flex items-center gap-2 flex-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                className={`w-10 h-10 border-2 border-neutral-900 flex items-center justify-center text-sm font-black transition-all duration-300 shadow-[2px_2px_0px_0px_#1F2937] ${
                   step === s
-                    ? 'bg-primary text-white shadow-primary'
+                    ? 'bg-brutalistYellow text-neutral-900'
                     : step === 'done' ||
                       (['camera', 'review', 'done'].indexOf(step) >
                         ['gps', 'camera', 'review'].indexOf(s))
                     ? 'bg-success text-white'
-                    : 'bg-neutral-100 text-neutral-400'
+                    : 'bg-white text-neutral-400'
                 }`}
               >
                 {step === 'done' ||
                 (['camera', 'review', 'done'].indexOf(step) >
                   ['gps', 'camera', 'review'].indexOf(s)) ? (
-                  <CheckCircle2 size={16} />
+                  <CheckCircle2 size={20} />
                 ) : (
                   i + 1
                 )}
               </div>
               {i < 2 && (
                 <div
-                  className={`flex-1 h-0.5 rounded ${
+                  className={`flex-1 h-1.5 border-y-2 border-neutral-900 ${
                     ['camera', 'review', 'done'].indexOf(step) > i
                       ? 'bg-success'
                       : 'bg-neutral-200'
@@ -187,16 +187,16 @@ export default function AbsenPage() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-4"
             >
-              <div className="glass-card p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-primary" />
+              <div className="border-4 border-neutral-900 bg-white p-6 shadow-[8px_8px_0px_0px_#1F2937]">
+                <div className="flex items-center gap-4 mb-6 border-b-4 border-neutral-900 pb-4">
+                  <div className="w-12 h-12 border-2 border-neutral-900 bg-brutalistCyan flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                    <MapPin className="w-6 h-6 text-neutral-900" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-neutral-800">
-                      Step 1: Verifikasi Lokasi
+                    <h2 className="font-black text-xl text-neutral-900 uppercase tracking-tight">
+                      Verifikasi Lokasi
                     </h2>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest mt-1">
                       Pastikan Anda berada di area kantor
                     </p>
                   </div>
@@ -217,18 +217,18 @@ export default function AbsenPage() {
 
               {/* Early attendance warning */}
               {!timeAllowed && (
-                <div className="p-4 border-2 border-warning bg-warning/10 flex items-start gap-3">
-                  <div className="w-10 h-10 border-2 border-neutral-800 bg-warning flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937] shrink-0">
-                    <Clock className="w-5 h-5 text-white" />
+                <div className="p-4 border-4 border-neutral-900 bg-warning/20 flex items-start gap-4 shadow-[8px_8px_0px_0px_#1F2937]">
+                  <div className="w-12 h-12 border-2 border-neutral-900 bg-warning flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937] shrink-0">
+                    <Clock className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-neutral-800 text-sm">
+                    <p className="font-black text-neutral-900 text-lg uppercase tracking-tight">
                       Belum Waktunya Absen
                     </p>
-                    <p className="text-xs text-neutral-600 mt-1">
-                      Jam absen dimulai pukul <span className="font-mono font-bold text-neutral-800">{workStartTimeStr}</span>.
+                    <p className="text-sm font-bold text-neutral-800 mt-2">
+                      Jam absen dimulai pukul <span className="font-black bg-white px-1 border-b-2 border-neutral-900">{workStartTimeStr}</span>.
                       {minutesLeft > 0 && (
-                        <> Silakan tunggu <span className="font-mono font-bold text-warning">{minutesLeft} menit</span> lagi.</>
+                        <> Silakan tunggu <span className="font-black text-warning bg-white px-1 border-b-2 border-warning">{minutesLeft} menit</span> lagi.</>
                       )}
                     </p>
                   </div>
@@ -238,27 +238,27 @@ export default function AbsenPage() {
               <button
                 onClick={() => setStep('camera')}
                 disabled={!isInRange || !timeAllowed}
-                className="btn-primary w-full py-4"
+                className="w-full flex items-center justify-center gap-3 px-6 py-5 text-lg font-black uppercase tracking-widest text-white bg-primary border-4 border-neutral-900 shadow-[8px_8px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[6px_6px_0px_0px_#1F2937] active:shadow-none active:translate-y-[8px] active:translate-x-[8px] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {!timeAllowed ? (
                   <>
-                    <Clock className="w-5 h-5" />
+                    <Clock className="w-6 h-6" />
                     Belum Jam Absen ({workStartTimeStr})
                   </>
                 ) : !isInRange && nearestPoint ? (
                   <>
-                    <AlertCircle className="w-5 h-5" />
+                    <AlertCircle className="w-6 h-6" />
                     Di Luar Area ({nearestPoint.distance}m)
                   </>
                 ) : !nearestPoint ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin" />
                     Mencari lokasi...
                   </>
                 ) : (
                   <>
                     Lanjut ke Kamera
-                    <Camera className="w-5 h-5" />
+                    <Camera className="w-6 h-6" />
                   </>
                 )}
               </button>
@@ -274,39 +274,39 @@ export default function AbsenPage() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-4"
             >
-              <div className="glass-card p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-                    <Camera className="w-5 h-5 text-primary" />
+              <div className="border-4 border-neutral-900 bg-white p-6 shadow-[8px_8px_0px_0px_#1F2937] mb-6">
+                <div className="flex items-center gap-4 mb-6 border-b-4 border-neutral-900 pb-4">
+                  <div className="w-12 h-12 border-2 border-neutral-900 bg-brutalistPink flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">
+                    <Camera className="w-6 h-6 text-neutral-900" />
                   </div>
                   <div>
-                    <h2 className="font-semibold text-neutral-800">
-                      Step 2: Foto Selfie
+                    <h2 className="font-black text-xl text-neutral-900 uppercase tracking-tight">
+                      Foto Selfie
                     </h2>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest mt-1">
                       Ambil foto selfie untuk verifikasi kehadiran
                     </p>
                   </div>
                 </div>
 
-                <div className="text-center py-8">
+                <div className="text-center py-10 border-4 border-neutral-900 bg-neutral-50 border-dashed">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setCameraOpen(true)}
-                    className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-primary-lg hover:shadow-xl transition-shadow"
+                    className="w-28 h-28 border-4 border-neutral-900 bg-primary flex items-center justify-center mx-auto shadow-[6px_6px_0px_0px_#1F2937]"
                   >
-                    <Camera className="w-10 h-10 text-white" />
+                    <Camera className="w-12 h-12 text-white" />
                   </motion.button>
-                  <p className="text-sm text-neutral-500 mt-4">
-                    Tap untuk membuka kamera
+                  <p className="text-sm font-black text-neutral-900 uppercase tracking-widest mt-6">
+                    Tap Untuk Membuka Kamera
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setStep('gps')}
-                className="btn-secondary w-full"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 text-base font-black uppercase tracking-widest text-neutral-900 bg-white border-4 border-neutral-900 shadow-[8px_8px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[6px_6px_0px_0px_#1F2937] active:shadow-none active:translate-y-[8px] active:translate-x-[8px] transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Kembali
@@ -321,16 +321,16 @@ export default function AbsenPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
+              className="space-y-6"
             >
-              <div className="glass-card p-5">
-                <h2 className="font-semibold text-neutral-800 mb-4">
-                  Step 3: Review & Submit
+              <div className="border-4 border-neutral-900 bg-white p-6 shadow-[8px_8px_0px_0px_#1F2937]">
+                <h2 className="font-black text-xl text-neutral-900 uppercase tracking-tight mb-6 border-b-4 border-neutral-900 pb-4">
+                  Review & Submit
                 </h2>
 
                 {/* Photo preview */}
                 {photoPreview && (
-                  <div className="relative rounded-xl overflow-hidden mb-4 aspect-[4/3]">
+                  <div className="relative border-4 border-neutral-900 mb-6 bg-neutral-100 aspect-[4/3]">
                     <img
                       src={photoPreview}
                       alt="Selfie preview"
@@ -342,7 +342,7 @@ export default function AbsenPage() {
                         setPhotoPreview(null)
                         setStep('camera')
                       }}
-                      className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-black/50 text-white text-xs font-medium hover:bg-black/70 transition-colors"
+                      className="absolute bottom-4 right-4 px-4 py-2 border-2 border-neutral-900 bg-white text-neutral-900 text-sm font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_#1F2937] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[6px_6px_0px_#1F2937] transition-all"
                     >
                       Foto Ulang
                     </button>
@@ -350,24 +350,24 @@ export default function AbsenPage() {
                 )}
 
                 {/* Info summary */}
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {nearestPoint && (
-                    <div className="flex items-center justify-between text-sm py-2 border-b border-neutral-100">
-                      <span className="text-neutral-500 flex items-center gap-2">
-                        <MapPin size={16} />
+                    <div className="flex items-center justify-between p-4 border-2 border-neutral-900 bg-brutalistCyan/10">
+                      <span className="text-neutral-900 font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                        <MapPin size={18} />
                         Lokasi
                       </span>
-                      <span className="text-neutral-800 font-medium">
+                      <span className="text-neutral-900 font-bold">
                         {nearestPoint.name} ({nearestPoint.distance}m)
                       </span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between text-sm py-2 border-b border-neutral-100">
-                    <span className="text-neutral-500 flex items-center gap-2">
-                      <Zap size={16} />
+                  <div className="flex items-center justify-between p-4 border-2 border-neutral-900 bg-brutalistYellow/10">
+                    <span className="text-neutral-900 font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                      <Zap size={18} />
                       GPS
                     </span>
-                    <span className="text-neutral-800 font-medium font-tabular">
+                    <span className="text-neutral-900 font-mono font-bold">
                       {geo.latitude?.toFixed(6)}, {geo.longitude?.toFixed(6)}
                     </span>
                   </div>
@@ -375,16 +375,16 @@ export default function AbsenPage() {
               </div>
 
               {attendance.error && (
-                <div className="p-3 rounded-xl bg-danger-light text-danger text-sm flex items-start gap-2">
-                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <div className="p-4 border-4 border-neutral-900 bg-danger text-white font-bold flex items-start gap-3 shadow-[8px_8px_0px_0px_#1F2937]">
+                  <AlertCircle size={24} className="shrink-0" />
                   {attendance.error}
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={() => setStep('camera')}
-                  className="btn-secondary flex-1"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm md:text-base font-black uppercase tracking-widest text-neutral-900 bg-white border-4 border-neutral-900 shadow-[8px_8px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[6px_6px_0px_0px_#1F2937] active:shadow-none active:translate-y-[8px] active:translate-x-[8px] transition-all"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   Kembali
@@ -392,17 +392,17 @@ export default function AbsenPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={attendance.submitting}
-                  className="btn-primary flex-1 py-4"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm md:text-base font-black uppercase tracking-widest text-white bg-primary border-4 border-neutral-900 shadow-[8px_8px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[6px_6px_0px_0px_#1F2937] active:shadow-none active:translate-y-[8px] active:translate-x-[8px] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {attendance.submitting ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Mengirim...
+                      MENGIRIM...
                     </>
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      Submit Absen
+                      SUBMIT ABSEN
                     </>
                   )}
                 </button>
@@ -416,36 +416,37 @@ export default function AbsenPage() {
               key="done"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
+              className="text-center pt-8"
             >
-              <div className="glass-card p-8">
+              <div className="border-4 border-neutral-900 bg-white p-8 md:p-12 shadow-[12px_12px_0px_0px_#1F2937]">
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                  initial={{ scale: 0, rotate: -15 }}
+                  animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                  className="w-20 h-20 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4"
+                  className="w-24 h-24 border-4 border-neutral-900 bg-success flex items-center justify-center mx-auto mb-6 shadow-[6px_6px_0px_0px_#1F2937]"
                 >
-                  <CheckCircle2 className="w-10 h-10 text-success" />
+                  <CheckCircle2 className="w-12 h-12 text-white" />
                 </motion.div>
 
-                <h2 className="text-xl font-bold text-neutral-800 mb-2">
+                <h2 className="text-3xl font-black text-neutral-900 uppercase tracking-tight mb-2">
                   Absen Berhasil! 🎉
                 </h2>
-                <p className="text-sm text-neutral-500 mb-4">
+                <p className="text-sm font-bold font-mono text-neutral-500 uppercase tracking-widest mb-8">
                   Kehadiran Anda telah tercatat
                 </p>
 
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <span className="badge bg-primary-50 text-primary text-base px-4 py-2">
-                    <Zap size={18} />+{attendance.todayRecord.xp_earned} XP
-                  </span>
+                <div className="flex items-center justify-center mb-8">
+                  <div className="inline-flex items-center gap-2 border-4 border-neutral-900 bg-brutalistYellow px-6 py-3 shadow-[4px_4px_0px_0px_#1F2937] transform -rotate-2">
+                    <Zap size={24} className="text-neutral-900" />
+                    <span className="font-black text-2xl text-neutral-900">+{attendance.todayRecord.xp_earned} XP</span>
+                  </div>
                 </div>
 
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="btn-primary"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 text-base font-black uppercase tracking-widest text-white bg-neutral-900 border-4 border-neutral-900 hover:bg-neutral-800 transition-colors"
                 >
-                  Kembali ke Dashboard
+                  KEMBALI KE DASHBOARD
                 </button>
               </div>
             </motion.div>

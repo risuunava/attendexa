@@ -5,14 +5,11 @@ import { format, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import {
   CheckCircle2,
-  XCircle,
   Clock,
-  Loader2,
   AlertTriangle,
 } from 'lucide-react'
 import { motion, type Variants } from 'framer-motion'
 import clsx from 'clsx'
-import toast from 'react-hot-toast'
 
 type LeaveType = 'sick' | 'annual_leave' | 'permit' | 'wfh'
 type LeaveStatus = 'pending' | 'approved' | 'rejected'
@@ -62,11 +59,10 @@ const itemVars: Variants = {
 
 type TabFilter = 'pending' | 'all'
 
-export default function ManageLeavesPage() {
+export default function BossLeavesPage() {
   const [requests, setRequests] = useState<LeaveWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<TabFilter>('pending')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     fetchLeaves()
@@ -90,29 +86,12 @@ export default function ManageLeavesPage() {
 
     if (error) {
       console.error('Error fetching leaves:', error)
-      toast.error('Gagal mengambil data izin')
     }
 
     if (data) {
       setRequests(data as unknown as LeaveWithUser[])
     }
     setLoading(false)
-  }
-
-  const handleAction = async (id: string, action: 'approved' | 'rejected') => {
-    setActionLoading(id)
-    const { error } = await supabase
-      .from('leave_requests')
-      .update({ status: action })
-      .eq('id', id)
-
-    if (error) {
-      toast.error('Gagal memproses: ' + error.message)
-    } else {
-      toast.success(action === 'approved' ? 'Izin disetujui!' : 'Izin ditolak.')
-      fetchLeaves()
-    }
-    setActionLoading(null)
   }
 
   return (
@@ -122,10 +101,10 @@ export default function ManageLeavesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="font-serif text-3xl md:text-4xl font-bold text-neutral-800 tracking-tight">
-              Review <span className="text-primary italic">Izin & Cuti</span>
+              Pantau <span className="text-primary italic">Izin & Cuti</span>
             </h1>
             <p className="text-sm md:text-base text-neutral-500 mt-2 font-mono uppercase tracking-widest font-bold">
-              Approve atau reject pengajuan izin karyawan
+              Lihat pengajuan izin dari semua karyawan
             </p>
           </div>
 
@@ -174,7 +153,7 @@ export default function ManageLeavesPage() {
             </h3>
             <p className="text-sm font-bold text-neutral-500 mt-2 font-mono">
               {tab === 'pending'
-                ? 'Semua pengajuan sudah diproses.'
+                ? 'Semua pengajuan sudah diproses oleh Admin.'
                 : 'Belum ada pengajuan izin dari karyawan.'}
             </p>
           </div>
@@ -187,7 +166,6 @@ export default function ManageLeavesPage() {
           >
             {requests.map((req) => {
               const cfg = statusConfig[req.status]
-              const isProcessing = actionLoading === req.id
 
               return (
                 <motion.div
@@ -242,32 +220,6 @@ export default function ManageLeavesPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Action Buttons */}
-                    {req.status === 'pending' && (
-                      <div className="flex sm:flex-col gap-3 shrink-0 mt-4 sm:mt-0">
-                        <button
-                          onClick={() => handleAction(req.id, 'approved')}
-                          disabled={isProcessing}
-                          className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-black uppercase tracking-widest text-neutral-900 bg-primary border-2 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#1F2937] active:shadow-none active:translate-y-[4px] active:translate-x-[4px] transition-all disabled:opacity-50"
-                        >
-                          {isProcessing ? (
-                            <Loader2 size={16} className="animate-spin text-white" />
-                          ) : (
-                            <CheckCircle2 size={16} className="text-white" />
-                          )}
-                          <span className="text-white">Setujui</span>
-                        </button>
-                        <button
-                          onClick={() => handleAction(req.id, 'rejected')}
-                          disabled={isProcessing}
-                          className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-black uppercase tracking-widest text-white bg-warning border-2 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#1F2937] active:shadow-none active:translate-y-[4px] active:translate-x-[4px] transition-all disabled:opacity-50"
-                        >
-                          <XCircle size={16} />
-                          Tolak
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )

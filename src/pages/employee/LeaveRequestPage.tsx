@@ -49,9 +49,9 @@ const leaveTypeEmoji: Record<LeaveType, string> = {
 }
 
 const statusConfig: Record<LeaveStatus, { label: string; icon: typeof Clock; badgeClass: string }> = {
-  pending: { label: 'Menunggu', icon: Clock, badgeClass: 'bg-warning-light text-warning' },
-  approved: { label: 'Disetujui', icon: CheckCircle2, badgeClass: 'bg-success-light text-success' },
-  rejected: { label: 'Ditolak', icon: XCircle, badgeClass: 'bg-danger-light text-danger' },
+  pending: { label: 'Menunggu', icon: Clock, badgeClass: 'bg-brutalistYellow text-neutral-900 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_#1F2937]' },
+  approved: { label: 'Disetujui', icon: CheckCircle2, badgeClass: 'bg-primary text-white border-2 border-neutral-900 shadow-[2px_2px_0px_0px_#1F2937]' },
+  rejected: { label: 'Ditolak', icon: XCircle, badgeClass: 'bg-warning text-white border-2 border-neutral-900 shadow-[2px_2px_0px_0px_#1F2937]' },
 }
 
 const containerVars: Variants = {
@@ -142,18 +142,18 @@ export default function LeaveRequestPage() {
     <PageContainer>
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-neutral-800">Izin & Cuti</h1>
-            <p className="text-sm text-neutral-500 mt-1">
-              Ajukan izin atau cuti dan pantau statusnya.
+            <h1 className="font-serif text-3xl md:text-4xl font-bold text-neutral-800 tracking-tight">Izin & Cuti</h1>
+            <p className="text-sm md:text-base text-neutral-500 mt-2 font-mono uppercase tracking-widest font-bold">
+              Ajukan izin atau cuti dan pantau statusnya
             </p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
             className={clsx(
-              'self-start sm:self-auto transition-all',
-              showForm ? 'btn-secondary' : 'btn-primary'
+              'self-start sm:self-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-black uppercase tracking-widest border-2 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#1F2937] active:shadow-none active:translate-y-[4px] active:translate-x-[4px] transition-all',
+              showForm ? 'bg-white text-neutral-900' : 'bg-brutalistYellow text-neutral-900'
             )}
           >
             {showForm ? (
@@ -178,55 +178,55 @@ export default function LeaveRequestPage() {
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-              <form onSubmit={handleSubmit} className="glass-card p-6 space-y-5">
-                <h2 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
-                  <FileText size={20} className="text-primary" />
+              <form onSubmit={handleSubmit} className="border-4 border-neutral-900 bg-white p-6 md:p-8 space-y-6 shadow-[8px_8px_0px_0px_#1F2937] mb-8">
+                <h2 className="text-xl font-black text-neutral-900 uppercase tracking-tight flex items-center gap-2 border-b-4 border-neutral-900 pb-4">
+                  <FileText size={24} className="text-primary" />
                   Form Pengajuan
                 </h2>
 
                 {/* Leave Type */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-sm font-black text-neutral-900 uppercase tracking-widest mb-3">
                     Tipe Izin
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {(Object.keys(leaveTypeLabels) as LeaveType[]).map((type) => (
                       <button
                         key={type}
                         type="button"
                         onClick={() => setLeaveType(type)}
                         className={clsx(
-                          'p-3 rounded-xl text-sm font-medium transition-all text-left flex items-center gap-2',
+                          'p-4 border-2 flex flex-col items-center gap-2 transition-all font-bold uppercase tracking-wider text-xs',
                           leaveType === type
-                            ? 'bg-primary-50 text-primary border-2 border-primary/30 shadow-sm'
-                            : 'bg-white/60 text-neutral-600 border-2 border-transparent hover:bg-white/80'
+                            ? 'bg-brutalistPink text-neutral-900 border-neutral-900 shadow-[4px_4px_0px_0px_#1F2937]'
+                            : 'bg-white text-neutral-600 border-neutral-300 hover:border-neutral-900 hover:text-neutral-900 hover:shadow-[4px_4px_0px_0px_#1F2937]'
                         )}
                       >
-                        <span className="text-lg">{leaveTypeEmoji[type]}</span>
-                        {leaveTypeLabels[type]}
+                        <span className="text-2xl">{leaveTypeEmoji[type]}</span>
+                        <span className="text-center">{leaveTypeLabels[type]}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      <CalendarDays size={14} className="inline mr-1" />
+                    <label className="block text-sm font-black text-neutral-900 uppercase tracking-widest mb-2">
+                      <CalendarDays size={16} className="inline mr-2" />
                       Tanggal Mulai
                     </label>
                     <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="input-field"
+                      className="w-full px-4 py-3 bg-neutral-100 border-2 border-neutral-900 font-mono font-bold text-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] focus:outline-none focus:bg-white transition-colors"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      <CalendarDays size={14} className="inline mr-1" />
+                    <label className="block text-sm font-black text-neutral-900 uppercase tracking-widest mb-2">
+                      <CalendarDays size={16} className="inline mr-2" />
                       Tanggal Selesai
                     </label>
                     <input
@@ -234,7 +234,7 @@ export default function LeaveRequestPage() {
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={startDate}
-                      className="input-field"
+                      className="w-full px-4 py-3 bg-neutral-100 border-2 border-neutral-900 font-mono font-bold text-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] focus:outline-none focus:bg-white transition-colors"
                       required
                     />
                   </div>
@@ -242,32 +242,32 @@ export default function LeaveRequestPage() {
 
                 {/* Reason */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                  <label className="block text-sm font-black text-neutral-900 uppercase tracking-widest mb-2">
                     Alasan
                   </label>
                   <textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Jelaskan alasan pengajuan izin/cuti Anda..."
-                    rows={3}
-                    className="input-field resize-none"
+                    placeholder="JELASKAN ALASAN PENGAJUAN..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-neutral-100 border-2 border-neutral-900 font-bold text-neutral-900 shadow-[4px_4px_0px_0px_#1F2937] focus:outline-none focus:bg-white transition-colors resize-none placeholder-neutral-400"
                     required
                   />
                 </div>
 
                 {/* Submit */}
-                <div className="flex gap-3 pt-2">
+                <div className="pt-4 border-t-4 border-neutral-900">
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="btn-primary flex-1 sm:flex-none"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 text-base font-black uppercase tracking-widest text-white bg-primary border-4 border-neutral-900 shadow-[6px_6px_0px_0px_#1F2937] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_#1F2937] active:shadow-none active:translate-y-[6px] active:translate-x-[6px] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {submitting ? (
-                      <Loader2 size={18} className="animate-spin" />
+                      <Loader2 size={24} className="animate-spin" />
                     ) : (
-                      <Send size={18} />
+                      <Send size={24} />
                     )}
-                    {submitting ? 'Mengirim...' : 'Kirim Pengajuan'}
+                    {submitting ? 'MENGIRIM...' : 'KIRIM PENGAJUAN'}
                   </button>
                 </div>
               </form>
@@ -277,7 +277,7 @@ export default function LeaveRequestPage() {
 
         {/* Stats Summary */}
         {!loading && requests.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-4 mb-8">
             {(['pending', 'approved', 'rejected'] as LeaveStatus[]).map((status) => {
               const count = requests.filter((r) => r.status === status).length
               const cfg = statusConfig[status]
@@ -287,13 +287,13 @@ export default function LeaveRequestPage() {
                   key={status}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="glass-card-sm p-4 text-center"
+                  className="bg-white border-2 border-neutral-900 p-4 text-center shadow-[4px_4px_0px_0px_#1F2937]"
                 >
-                  <div className={`w-10 h-10 rounded-xl ${cfg.badgeClass} flex items-center justify-center mx-auto mb-2`}>
-                    <Icon size={20} />
+                  <div className={`w-12 h-12 border-2 border-neutral-900 flex items-center justify-center mx-auto mb-3 shadow-[2px_2px_0px_0px_#1F2937] ${status === 'pending' ? 'bg-brutalistYellow' : status === 'approved' ? 'bg-primary' : 'bg-warning'}`}>
+                    <Icon size={24} className={status === 'pending' ? 'text-neutral-900' : 'text-white'} />
                   </div>
-                  <p className="text-2xl font-bold text-neutral-800 font-tabular">{count}</p>
-                  <p className="text-xs text-neutral-500 mt-0.5">{cfg.label}</p>
+                  <p className="text-3xl font-black text-neutral-900 font-mono tracking-tighter">{count}</p>
+                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest mt-1">{cfg.label}</p>
                 </motion.div>
               )
             })}
@@ -302,21 +302,24 @@ export default function LeaveRequestPage() {
 
         {/* Request List */}
         <div>
-          <h2 className="text-lg font-bold text-neutral-800 mb-4">Riwayat Pengajuan</h2>
+          <h2 className="text-xl font-black text-neutral-900 uppercase tracking-tight mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 bg-brutalistCyan border-2 border-neutral-900 flex items-center justify-center shadow-[2px_2px_0px_0px_#1F2937]">📋</span>
+            Riwayat Pengajuan
+          </h2>
 
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="glass-card p-5 h-24 animate-pulse bg-white/40" />
+                <div key={i} className="h-24 border-2 border-neutral-900 animate-pulse bg-neutral-100 shadow-[4px_4px_0px_0px_#1F2937]" />
               ))}
             </div>
           ) : requests.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-neutral-400" />
+            <div className="bg-white border-2 border-neutral-900 p-12 text-center shadow-[4px_4px_0px_0px_#1F2937]">
+              <div className="w-16 h-16 border-2 border-neutral-900 bg-brutalistPink flex items-center justify-center mx-auto mb-4 shadow-[2px_2px_0px_0px_#1F2937]">
+                <FileText className="w-8 h-8 text-neutral-900" />
               </div>
-              <h3 className="text-lg font-medium text-neutral-800">Belum ada pengajuan</h3>
-              <p className="text-sm text-neutral-500 mt-1">
+              <h3 className="text-lg font-black text-neutral-900 uppercase tracking-tight">Belum ada pengajuan</h3>
+              <p className="text-sm font-bold font-mono text-neutral-500 mt-2">
                 Klik "Ajukan Izin" untuk membuat pengajuan baru.
               </p>
             </div>
@@ -325,7 +328,7 @@ export default function LeaveRequestPage() {
               variants={containerVars}
               initial="hidden"
               animate="show"
-              className="space-y-3"
+              className="space-y-4"
             >
               {requests.map((req) => {
                 const cfg = statusConfig[req.status]
@@ -334,46 +337,49 @@ export default function LeaveRequestPage() {
                   <motion.div
                     key={req.id}
                     variants={itemVars}
-                    className="glass-card p-4 sm:p-5 transition-all hover:shadow-glass-sm"
+                    className="bg-white border-2 border-neutral-900 p-5 transition-all hover:shadow-[6px_6px_0px_0px_#1F2937] hover:-translate-y-0.5 hover:-translate-x-0.5 group"
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-5">
                       {/* Type Emoji */}
-                      <div className="w-12 h-12 rounded-xl bg-white/80 flex items-center justify-center text-2xl shrink-0 shadow-sm">
+                      <div className="w-14 h-14 border-2 border-neutral-900 bg-brutalistCyan flex items-center justify-center text-3xl shrink-0 shadow-[2px_2px_0px_0px_#1F2937] group-hover:scale-110 transition-transform">
                         {leaveTypeEmoji[req.type]}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-neutral-800 text-sm">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-black text-neutral-900 uppercase tracking-widest text-sm">
                             {leaveTypeLabels[req.type]}
                           </span>
-                          <span className={`badge ${cfg.badgeClass}`}>
+                          <span className={`px-2 py-0.5 text-xs font-black uppercase tracking-widest flex items-center gap-1 ${cfg.badgeClass}`}>
                             <Icon size={12} />
                             {cfg.label}
                           </span>
                         </div>
 
-                        <p className="text-sm text-neutral-600 mt-1.5 flex items-center gap-1.5">
-                          <CalendarDays size={14} className="text-primary shrink-0" />
-                          {format(parseISO(req.start_date), 'd MMM yyyy', { locale: localeId })}
-                          {req.start_date !== req.end_date && (
-                            <>
-                              {' — '}
-                              {format(parseISO(req.end_date), 'd MMM yyyy', { locale: localeId })}
-                            </>
-                          )}
-                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="font-mono font-bold text-sm bg-neutral-100 px-2 py-1 border border-neutral-900 shadow-[1px_1px_0px_0px_#1F2937]">
+                            {format(parseISO(req.start_date), 'd MMM yyyy', { locale: localeId })}
+                            {req.start_date !== req.end_date && (
+                              <>
+                                {' — '}
+                                {format(parseISO(req.end_date), 'd MMM yyyy', { locale: localeId })}
+                              </>
+                            )}
+                          </span>
+                        </div>
 
                         {req.reason && (
-                          <p className="text-xs text-neutral-500 mt-1.5 line-clamp-2">
-                            {req.reason}
-                          </p>
+                          <div className="mt-3 p-3 border-l-4 border-neutral-900 bg-neutral-50">
+                            <p className="text-xs font-bold text-neutral-600 line-clamp-2 italic">
+                              "{req.reason}"
+                            </p>
+                          </div>
                         )}
                       </div>
 
                       {/* Date submitted */}
-                      <div className="text-xs text-neutral-400 shrink-0 hidden sm:block">
+                      <div className="text-xs font-black text-neutral-400 uppercase tracking-widest shrink-0 hidden sm:block">
                         {format(parseISO(req.created_at), 'd MMM', { locale: localeId })}
                       </div>
                     </div>

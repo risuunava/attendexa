@@ -29,6 +29,7 @@ import ManageShiftsPage from './pages/admin/ManageShiftsPage'
 import BossDashboardPage from './pages/boss/BossDashboardPage'
 import BossAnalyticsPage from './pages/boss/BossAnalyticsPage'
 import BossLeaderboardPage from './pages/boss/BossLeaderboardPage'
+import BossLeavesPage from './pages/boss/BossLeavesPage'
 
 /**
  * Root redirect helper — sends authenticated users
@@ -144,6 +145,7 @@ function App() {
           <Route path="/boss/dashboard" element={<ProtectedRoute allowedRoles={['boss']}><BossDashboardPage /></ProtectedRoute>} />
           <Route path="/boss/analytics" element={<ProtectedRoute allowedRoles={['boss']}><BossAnalyticsPage /></ProtectedRoute>} />
           <Route path="/boss/leaderboard" element={<ProtectedRoute allowedRoles={['boss']}><BossLeaderboardPage /></ProtectedRoute>} />
+          <Route path="/boss/izin" element={<ProtectedRoute allowedRoles={['boss']}><BossLeavesPage /></ProtectedRoute>} />
 
           {/* Root — redirect based on role */}
           <Route path="/" element={<RootRedirect />} />
